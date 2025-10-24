@@ -43,44 +43,43 @@ public class AuthService {
         }
 
         String at = jwtProvider.createAccessToken(acc.getUid());
-
-        // RT = UUID(opaque). jti도 UUID로 동일하게 사용
         String fam = UUID.randomUUID().toString();
         String jti = UUID.randomUUID().toString();
-        String rt = jti; // 토큰 값 자체로 UUID 사용
+        String rt = jti;
 
-        rtService.store(acc.getUid(), jti, rt, fam,
-                Duration.ofDays(jwtProps.getRefreshTokenTtlDays()),
-                "ua", "ip"); // TODO: 실제 UA/IP 입력
+        rtService.store(
+                acc.getUid(),
+                jti,
+                rt,
+                fam,
+                Duration.ofDays(jwtProps.getRefreshTokenTtlDays())
+        );
 
         return new AuthDto.Tokens(at, rt);
     }
 
     @Transactional
     public AuthDto.Tokens refresh(AuthDto.RefreshReq req) {
-        // 1) 해시 인덱스로 역조회
-        Optional<RefreshTokenService.Entry> found = rtService.resolveByRawToken(req.getRefreshToken());
-        if (found.isEmpty()) {
-            // 존재하지 않음 = 만료/회전된 토큰 재사용 가능성 → (옵션) fam revoke
-            throw new ApiException(ErrorCode.UNAUTHORIZED, "Invalid refresh token");
-        }
-        RefreshTokenService.Entry e = found.get();
+        var found = rtService.resolveByRawToken(req.getRefreshToken())
+                .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED, "Invalid refresh token"));
 
-        // (옵션) fam 전체 차단이 활성화된 경우
-        if (rtService.isFamilyRevoked(e.sub, e.fam)) {
+        if (rtService.isFamilyRevoked(found.sub, found.fam)) {
             throw new ApiException(ErrorCode.UNAUTHORIZED, "Session revoked");
         }
 
-        // 2) 정상 회전: 이전 키 폐기 → 새 RT 발급/저장
-        rtService.revoke(e.sub, e.jti, e.hashHex);
+        rtService.revoke(found.sub, found.jti, found.hashHex);
 
-        String newAt = jwtProvider.createAccessToken(e.sub);
+        String newAt = jwtProvider.createAccessToken(found.sub);
         String newJti = UUID.randomUUID().toString();
         String newRt = newJti;
 
-        rtService.store(e.sub, newJti, newRt, e.fam,
-                Duration.ofDays(jwtProps.getRefreshTokenTtlDays()),
-                req.getUserAgentHash(), req.getIp());
+        rtService.store(
+                found.sub,
+                newJti,
+                newRt,
+                found.fam,
+                Duration.ofDays(jwtProps.getRefreshTokenTtlDays())
+        );
 
         return new AuthDto.Tokens(newAt, newRt);
     }

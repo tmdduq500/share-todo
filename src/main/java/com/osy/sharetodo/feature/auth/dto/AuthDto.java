@@ -36,10 +36,6 @@ public final class AuthDto {
     public static class RefreshReq {
         @NotBlank
         private String refreshToken;
-        @NotBlank
-        private String userAgentHash;
-        @NotBlank
-        private String ip;
     }
 
     @Getter

@@ -78,7 +78,7 @@ class AuthServiceTest {
         ArgumentCaptor<Duration> ttlCap = ArgumentCaptor.forClass(Duration.class);
 
         verify(rtService).store(subCap.capture(), jtiCap.capture(), rawRtCap.capture(),
-                famCap.capture(), ttlCap.capture(), anyString(), anyString());
+                famCap.capture(), ttlCap.capture());
 
         assertThat(subCap.getValue()).isEqualTo("01HZYV6N4YGA6K93Q9X9A7CXDQ");
         assertThat(jtiCap.getValue()).isEqualTo(tokens.getRefreshToken());
@@ -103,8 +103,6 @@ class AuthServiceTest {
 
         AuthDto.RefreshReq req = new AuthDto.RefreshReq();
         req.setRefreshToken(oldRt);
-        req.setUserAgentHash("uah");
-        req.setIp("127.0.0.1");
 
         // when
         AuthDto.Tokens rotated = authService.refresh(req);
@@ -117,7 +115,6 @@ class AuthServiceTest {
         verify(rtService).revoke(eq(sub), eq(oldJti), eq("hashhex"));
         // 새 store 호출 확인
         verify(rtService).store(eq(sub), matches("^[0-9a-fA-F\\-]{36}$"),
-                eq(rotated.getRefreshToken()), eq(fam), eq(Duration.ofDays(14)),
-                eq("uah"), eq("127.0.0.1"));
+                eq(rotated.getRefreshToken()), eq(fam), eq(Duration.ofDays(14)));
     }
 }

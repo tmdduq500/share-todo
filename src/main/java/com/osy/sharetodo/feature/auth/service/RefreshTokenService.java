@@ -21,19 +21,14 @@ public class RefreshTokenService {
     private static final String RTH = "auth:rthash:";    // auth:rthash:<hashHex> -> "<sub>:<jti>"
     private static final String FAM_REVOKED = "auth:rtfam:"; // auth:rtfam:<sub>:<fam>:revoked
 
-    public void store(String sub, String jti, String rawToken, String famId,
-                      Duration ttl, String uaHash, String ip) {
+    public void store(String sub, String jti, String rawToken, String famId, Duration ttl) {
         String hashHex = sha256Hex(rawToken);
-
         String k = RT + sub + ":" + jti;
         redis.opsForHash().putAll(k, Map.of(
                 "hash", hashHex,
-                "fam", famId,
-                "ua", uaHash == null ? "" : uaHash,
-                "ip", ip == null ? "" : ip
+                "fam", famId
         ));
         redis.expire(k, ttl);
-
         redis.opsForValue().set(RTH + hashHex, sub + ":" + jti, ttl);
     }
 
@@ -44,7 +39,6 @@ public class RefreshTokenService {
         String[] parts = ref.split(":", 2);
         if (parts.length != 2) return Optional.empty();
         String sub = parts[0], jti = parts[1];
-
         String fam = (String) redis.opsForHash().get(RT + sub + ":" + jti, "fam");
         return Optional.of(new Entry(sub, jti, fam, hashHex));
     }
