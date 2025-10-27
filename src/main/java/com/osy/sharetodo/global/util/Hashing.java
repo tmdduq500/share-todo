@@ -19,9 +19,11 @@ public class Hashing {
         try {
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
             messageDigest.update(input.getBytes(StandardCharsets.UTF_8));
-            if (!pepper.isEmpty()) {
+
+            if (pepper != null && !pepper.isEmpty()) {
                 messageDigest.update(pepper.getBytes(StandardCharsets.UTF_8));
             }
+
             return messageDigest.digest();
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException(e);
