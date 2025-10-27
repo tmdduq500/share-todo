@@ -19,7 +19,6 @@ public class EventController {
 
     @PostMapping
     public ApiResponse<EventDto.EventRes> create(@Valid @RequestBody EventDto.EventCreateReq req) {
-        // JWT 서브젝트(accountUid)에서 가져오기 (SecurityFilter에서 설정되어 있다고 가정)
         String accountUid = (String) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
         return ApiResponse.ok(eventService.create(accountUid, req));
