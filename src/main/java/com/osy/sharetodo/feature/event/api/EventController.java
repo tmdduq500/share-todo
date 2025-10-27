@@ -29,13 +29,4 @@ public class EventController {
     public ApiResponse<EventDto.EventRes> get(@PathVariable String uid) {
         return ApiResponse.ok(eventService.getByUid(uid));
     }
-
-    @GetMapping("/me")
-    public Map<String, Object> me() {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        return Map.of(
-                "authenticated", auth != null && auth.isAuthenticated(),
-                "principal", auth != null ? auth.getPrincipal() : null
-        );
-    }
 }
