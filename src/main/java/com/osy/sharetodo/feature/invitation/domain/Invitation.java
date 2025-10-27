@@ -53,4 +53,24 @@ public class Invitation extends BaseEntity {
     @Column(name = "accepted_at", columnDefinition = "datetime(6)")
     private LocalDateTime acceptedAt;
 
+    public static Invitation create(Event event, Person inviter, InvitationChannel channel,
+                                    byte[] contactHash, byte[] tokenHash, LocalDateTime expiresAt, String uid) {
+        Invitation inv = new Invitation();
+        inv.event = event;
+        inv.inviter = inviter;
+        inv.channel = channel;
+        inv.contactHash = contactHash;
+        inv.tokenHash = tokenHash;
+        inv.expiresAt = expiresAt;
+        inv.uid = uid;
+        return inv;
+    }
+
+    public void accept() {
+        this.acceptedAt = LocalDateTime.now();
+    }
+
+    public boolean isExpired(LocalDateTime now) {
+        return expiresAt != null && expiresAt.isBefore(now);
+    }
 }

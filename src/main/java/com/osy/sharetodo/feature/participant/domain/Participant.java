@@ -45,5 +45,30 @@ public class Participant extends BaseEntity {
     @Column(nullable = false)
     private ParticipantStatus status;
 
+    /** 정적 생성자 (비회원 초대용) */
+    public static Participant invite(Event event, byte[] contactHash) {
+        Participant p = new Participant();
+        p.event = event;
+        p.contactHash = contactHash;
+        p.role = ParticipantRole.ATTENDEE;
+        p.status = ParticipantStatus.INVITED;
+        return p;
+    }
+
+    /** 회원 기반 참가자 */
+    public static Participant of(Event event, Person person, ParticipantRole role) {
+        Participant p = new Participant();
+        p.event = event;
+        p.person = person;
+        p.contactHash = null;
+        p.role = role;
+        p.status = ParticipantStatus.ACCEPTED;
+        return p;
+    }
+
+    /** 초대 수락 처리 */
+    public void accept() {
+        this.status = ParticipantStatus.ACCEPTED;
+    }
 }
 
