@@ -4,14 +4,20 @@ import com.osy.sharetodo.feature.account.domain.Account;
 import com.osy.sharetodo.feature.account.repository.AccountRepository;
 import com.osy.sharetodo.feature.event.domain.Event;
 import com.osy.sharetodo.feature.event.dto.EventDto;
+import com.osy.sharetodo.feature.event.dto.EventListCondition;
+import com.osy.sharetodo.feature.event.dto.EventListRes;
 import com.osy.sharetodo.feature.event.repository.EventRepository;
 import com.osy.sharetodo.feature.person.domain.Person;
 import com.osy.sharetodo.feature.person.repository.PersonRepository;
 import com.osy.sharetodo.global.exception.ApiException;
 import com.osy.sharetodo.global.exception.ErrorCode;
+import com.osy.sharetodo.global.response.PageResponse;
 import com.osy.sharetodo.global.util.TimeUtils;
 import com.osy.sharetodo.global.util.Ulids;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,5 +102,50 @@ public class EventService {
                 .visibility(e.getVisibility())
                 .build();
         return res;
+    }
+
+    @Transactional
+    public PageResponse<EventListRes> list(String accountUid, EventListCondition eventListCondition) {
+        Account acc = accountRepository.findByUid(accountUid)
+                .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED, "계정을 찾을 수 없습니다."));
+
+        Person owner = personRepository.findByAccount_Id(acc.getId())
+                .stream().findFirst()
+                .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, "소유자 정보를 찾을 수 없습니다."));
+
+        // 기간 변환
+        LocalDateTime fromUtc = null, toUtc = null;
+        if (eventListCondition.getFromLocal() != null && eventListCondition.getTimezone() != null) {
+            fromUtc = TimeUtils.toUtc(eventListCondition.getFromLocal(), eventListCondition.getTimezone());
+        }
+        if (eventListCondition.getToLocal() != null && eventListCondition.getTimezone() != null) {
+            toUtc = TimeUtils.toUtc(eventListCondition.getToLocal(), eventListCondition.getTimezone());
+        }
+
+        int page = eventListCondition.getPage() == null ? 0 : Math.max(0, eventListCondition.getPage());
+        int size = eventListCondition.getSize() == null ? 20 : Math.min(100, Math.max(1, eventListCondition.getSize()));
+        Sort sort = Sort.by(Sort.Direction.ASC, "startsAtUtc"); // 고정
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        var pageEvents = eventRepository.searchByOwnerAndFilters(
+                owner.getId(),
+                fromUtc, toUtc,
+                eventListCondition.getQ(),
+                pageable
+        );
+
+        // 매핑
+        var mapped = pageEvents.map(e -> {
+            EventListRes r = new EventListRes();
+            r.setUid(e.getUid());
+            r.setTitle(e.getTitle());
+            r.setStartsAtUtc(e.getStartsAtUtc().atOffset(java.time.ZoneOffset.UTC).toString());
+            r.setEndsAtUtc(e.getEndsAtUtc().atOffset(java.time.ZoneOffset.UTC).toString());
+            r.setLocation(e.getLocation());
+            r.setVisibility(e.getVisibility());
+            return r;
+        });
+
+        return PageResponse.of(mapped);
     }
 }

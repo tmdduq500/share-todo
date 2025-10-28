@@ -1,8 +1,11 @@
 package com.osy.sharetodo.feature.event.api;
 
 import com.osy.sharetodo.feature.event.dto.EventDto;
+import com.osy.sharetodo.feature.event.dto.EventListCondition;
+import com.osy.sharetodo.feature.event.dto.EventListRes;
 import com.osy.sharetodo.feature.event.service.EventService;
 import com.osy.sharetodo.global.response.ApiResponse;
+import com.osy.sharetodo.global.response.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,5 +30,12 @@ public class EventController {
     @GetMapping("/{uid}")
     public ApiResponse<EventDto.EventRes> get(@PathVariable String uid) {
         return ApiResponse.ok(eventService.getByUid(uid));
+    }
+
+    @GetMapping
+    public ApiResponse<PageResponse<EventListRes>> list(@Valid EventListCondition eventListCondition) {
+        String accountUid = (String) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        return ApiResponse.ok(eventService.list(accountUid, eventListCondition));
     }
 }
