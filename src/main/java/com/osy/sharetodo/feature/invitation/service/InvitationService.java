@@ -6,12 +6,15 @@ import com.osy.sharetodo.feature.invitation.domain.Invitation;
 import com.osy.sharetodo.feature.invitation.domain.InvitationChannel;
 import com.osy.sharetodo.feature.invitation.dto.InvitationDto;
 import com.osy.sharetodo.feature.invitation.repository.InvitationRepository;
+import com.osy.sharetodo.feature.invitation.template.InvitationEmailTemplate;
+import com.osy.sharetodo.feature.notification.mail.MailPort;
 import com.osy.sharetodo.feature.participant.domain.Participant;
 import com.osy.sharetodo.feature.participant.domain.ParticipantRole;
 import com.osy.sharetodo.feature.participant.domain.ParticipantStatus;
 import com.osy.sharetodo.feature.participant.repository.ParticipantRepository;
 import com.osy.sharetodo.feature.person.domain.Person;
 import com.osy.sharetodo.feature.person.repository.PersonRepository;
+import com.osy.sharetodo.global.config.AppProps;
 import com.osy.sharetodo.global.exception.ApiException;
 import com.osy.sharetodo.global.exception.ErrorCode;
 import com.osy.sharetodo.global.util.Ulids;
@@ -34,6 +37,10 @@ public class InvitationService {
     private final ParticipantRepository participantRepository;
     private final InviteTokenService inviteTokenService;
     private final Ulids ulids;
+
+    private final MailPort mailPort;
+    private final AppProps appProps;
+    private final InvitationEmailTemplate emailTemplate;
 
     private static String normalizeEmail(String email) {
         return StringUtils.trimToEmpty(email).toLowerCase();
@@ -74,6 +81,14 @@ public class InvitationService {
         InvitationDto.CreateRes res = new InvitationDto.CreateRes();
         res.setInvitationUid(inv.getUid());
         res.setToken(rawToken);
+
+        if (req.getChannel() == InvitationChannel.EMAIL) {
+            String to = normalizeEmail(req.getTarget());
+            String subject = emailTemplate.subject(event.getTitle());
+            String body = emailTemplate.body(appProps.getBaseUrl(), rawToken, event.getTitle(), event.getDescription());
+            mailPort.send(to, subject, body);
+        }
+
         return res;
     }
 
