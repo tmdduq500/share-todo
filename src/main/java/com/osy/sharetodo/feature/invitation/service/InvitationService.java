@@ -35,7 +35,6 @@ public class InvitationService {
     private final InviteTokenService inviteTokenService;
     private final Ulids ulids;
 
-    // 간단 정규화 도우미
     private static String normalizeEmail(String email) {
         return StringUtils.trimToEmpty(email).toLowerCase();
     }

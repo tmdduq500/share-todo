@@ -33,7 +33,7 @@ public class Contact extends BaseEntity {
     private ContactChannel channel;
 
     @Column(name = "value_norm")
-    private String valueNorm;   // 필요시 암호화
+    private String valueNorm;
 
     @Column(name = "value_hash", nullable = false, columnDefinition = "binary(32)")
     private byte[] valueHash;

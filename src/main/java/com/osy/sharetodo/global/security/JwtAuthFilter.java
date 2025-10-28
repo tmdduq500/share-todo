@@ -37,7 +37,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 jwtProvider.assertType(jws, "access");
                 String accountUid = jws.getBody().getSubject();
 
-                // 권한은 일단 ROLE_USER 하나로 세팅(필요 시 확장)
+                // 권한은 일단 ROLE_USER 하나로 세팅
                 AbstractAuthenticationToken auth =
                         new AbstractAuthenticationToken(List.of(new SimpleGrantedAuthority("ROLE_USER"))) {
                             @Override

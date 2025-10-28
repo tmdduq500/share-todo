@@ -83,7 +83,7 @@ class AuthServiceTest {
         assertThat(subCap.getValue()).isEqualTo("01HZYV6N4YGA6K93Q9X9A7CXDQ");
         assertThat(jtiCap.getValue()).isEqualTo(tokens.getRefreshToken());
         assertThat(rawRtCap.getValue()).isEqualTo(tokens.getRefreshToken());
-        // fam은 UUID여야 함
+
         assertThat(famCap.getValue()).matches("^[0-9a-fA-F\\-]{36}$");
         assertThat(ttlCap.getValue()).isEqualTo(Duration.ofDays(14));
     }

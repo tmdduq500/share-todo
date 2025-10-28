@@ -28,13 +28,13 @@ public class DevBootstrap {
         if (accountRepository.count() > 0) return;
 
         String email = "dev@example.com";
-        String rawPw = "dev1234"; // 로컬 테스트용
+        String rawPw = "dev1234";
         String hash = passwordEncoder.encode(rawPw);
 
         Account acc = Account.builder()
                 .uid(ulids.newUlid())
                 .emailNorm(email.toLowerCase())
-                .passwordHash(hash.getBytes())   // 컬럼이 VARBINARY(255)이므로 문자열 바이트 저장
+                .passwordHash(hash.getBytes())
                 .provider("local")
                 .status(AccountStatus.ACTIVE)
                 .build();

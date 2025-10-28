@@ -21,7 +21,6 @@ class JwtProviderTest {
         props.setInviteTokenTtlHours(168);
 
         JwtProvider provider = new JwtProvider(props);
-        // @PostConstruct 메서드 직접 호출
         ReflectionTestUtils.invokeMethod(provider, "init");
         return provider;
     }
@@ -43,7 +42,7 @@ class JwtProviderTest {
     void init_throws_when_secret_too_short() {
         JwtProps weak = new JwtProps();
         weak.setIssuer("share-todo");
-        weak.setSecret("short-secret"); // 32바이트 미만
+        weak.setSecret("short-secret");
         weak.setAccessTokenTtlMinutes(5);
         weak.setRefreshTokenTtlDays(14);
         weak.setInviteTokenTtlHours(168);
