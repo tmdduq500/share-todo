@@ -41,4 +41,8 @@ public class Account extends BaseEntity {
 
     @Column(name = "last_login_at", columnDefinition = "datetime(6)")
     private LocalDateTime lastLoginAt;
+
+    public void changePassword(byte[] password) {
+        this.passwordHash = password;
+    }
 }
