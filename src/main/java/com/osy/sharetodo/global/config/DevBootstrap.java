@@ -7,11 +7,11 @@ import com.osy.sharetodo.feature.person.domain.Person;
 import com.osy.sharetodo.feature.person.repository.PersonRepository;
 import com.osy.sharetodo.global.util.Ulids;
 import jakarta.annotation.PostConstruct;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Profile("dev")
@@ -51,5 +51,7 @@ public class DevBootstrap {
     }
 
     @PostConstruct
-    public void run() { init(); }
+    public void run() {
+        init();
+    }
 }

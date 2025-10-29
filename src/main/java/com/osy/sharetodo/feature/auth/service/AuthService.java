@@ -7,18 +7,13 @@ import com.osy.sharetodo.global.exception.ApiException;
 import com.osy.sharetodo.global.exception.ErrorCode;
 import com.osy.sharetodo.global.security.JwtProps;
 import com.osy.sharetodo.global.security.JwtProvider;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwtException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Date;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
