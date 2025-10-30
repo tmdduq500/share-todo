@@ -1,5 +1,7 @@
 package com.osy.sharetodo.feature.notification.mail;
 
+import com.osy.sharetodo.global.exception.ApiException;
+import com.osy.sharetodo.global.exception.ErrorCode;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +25,6 @@ public class SmtpMailSender implements MailPort{
             helper.setText(htmlBody, true); // HTML
             mailSender.send(message);
         } catch (MessagingException e) {
-            throw new IllegalStateException("Failed to send email", e);
-        }
+            throw new ApiException(ErrorCode.INTERNAL_ERROR, "메일 전송에 실패했습니다.");        }
     }
 }
