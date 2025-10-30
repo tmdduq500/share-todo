@@ -43,6 +43,8 @@ public final class AuthDto {
     @NoArgsConstructor
     public static class LogoutReq {
         @NotBlank
+        private String accessToken;
+        @NotBlank
         private String refreshToken;
     }
 }

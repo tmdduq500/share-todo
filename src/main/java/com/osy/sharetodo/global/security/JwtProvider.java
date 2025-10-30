@@ -41,10 +41,17 @@ public class JwtProvider {
                 .setExpiration(Date.from(exp));
     }
 
-    public String createAccessToken(String accountUid) {
-        Instant now = Instant.now();
-        Instant exp = now.plus(props.getAccessTokenTtlMinutes(), ChronoUnit.MINUTES);
-        return base(accountUid, "access", UUID.randomUUID().toString(), now, exp)
+    public String createAccessToken(String subject) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + props.getAccessTokenTtlMinutes());
+        String jti = UUID.randomUUID().toString();
+
+        return Jwts.builder()
+                .setSubject(subject)
+                .setIssuedAt(now)
+                .setExpiration(expiry)
+                .setId(jti)
+                .claim("typ", "access")
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }

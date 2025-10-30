@@ -26,7 +26,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ApiResponse<Void> logout(@Valid @RequestBody AuthDto.LogoutReq req) {
-        authService.logout(req);
+        authService.logout(req.getAccessToken(), req.getRefreshToken());
         return ApiResponse.ok(null);
     }
 }
