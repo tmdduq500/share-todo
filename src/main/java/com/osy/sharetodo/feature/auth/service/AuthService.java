@@ -87,10 +87,17 @@ public class AuthService {
         String jti = jwtProvider.parse(accessToken).getBody().getId();
         long ttl = jwtProvider.parse(accessToken).getBody().getExpiration().getTime() - System.currentTimeMillis();
 
-        redisTemplate.opsForValue().set("blacklist:access:" + jti, "true", Duration.ofMillis(ttl));
+
+        try {
+            redisTemplate.opsForValue().set("blacklist:access:" + jti, "true", Duration.ofMillis(ttl));
+        } catch (RuntimeException e) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "로그아웃 처리 중 Redis 오류가 발생했습니다.");
+        }
+
 
         RefreshTokenService.Entry resolved = refreshTokenService.resolveByRawToken(refreshToken)
                 .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED, "유효하지 않은 리프레시 토큰입니다."));
+
 
         refreshTokenService.revoke(resolved.sub, resolved.jti, resolved.hashHex);
     }
