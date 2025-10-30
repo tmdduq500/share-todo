@@ -2,6 +2,7 @@ package com.osy.sharetodo.global.exception;
 
 import com.osy.sharetodo.global.response.ApiResponse;
 import com.osy.sharetodo.global.response.ErrorResponse;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -10,22 +11,24 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
     @ExceptionHandler(ApiException.class)
-    public ResponseEntity<ApiResponse<Void>> handle(ApiException e) {
-        return ResponseEntity.status(e.code().getStatus())
-                .body(ApiResponse.error(e.code().getDefaultMessage(), e.getMessage()));
+    public ResponseEntity<ErrorResponse> handleApiException(ApiException ex) {
+        return buildResponse(ex.code(), ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handle(MethodArgumentNotValidException e) {
-        var fe = e.getBindingResult().getFieldError();
-        String msg = fe != null ? fe.getDefaultMessage() : "Validation error";
-        return ResponseEntity.badRequest().body(ApiResponse.error(ErrorCode.VALIDATION_ERROR.getDefaultMessage(), msg));
+    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult().getAllErrors().stream()
+                .findFirst()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .orElse("Validation error");
+        return buildResponse(ErrorCode.INVALID_INPUT, message);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
-        return buildResponse(ErrorCode.CONFLICT, "데이터 무결성 제약 조건에 위배되었습니다.");
+        return buildResponse(ErrorCode.CONFLICT, "데이터 무결성 제약 조건 위반");
     }
 
     @ExceptionHandler(Exception.class)
@@ -35,7 +38,8 @@ public class GlobalExceptionHandler {
     }
 
     private ResponseEntity<ErrorResponse> buildResponse(ErrorCode errorCode, String message) {
-        ErrorResponse errorResponse = new ErrorResponse(errorCode, message);
-        return ResponseEntity.status(errorCode.getStatus()).body(errorResponse);
+        ErrorResponse response = new ErrorResponse(errorCode, message);
+        return ResponseEntity.status(errorCode.getStatus()).body(response);
     }
 }
+
