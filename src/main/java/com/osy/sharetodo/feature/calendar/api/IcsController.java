@@ -1,10 +1,14 @@
 package com.osy.sharetodo.feature.calendar.api;
 
 import com.osy.sharetodo.feature.calendar.IcsBuilder;
+import com.osy.sharetodo.feature.event.domain.Event;
 import com.osy.sharetodo.feature.invitation.service.InvitationService;
+import com.osy.sharetodo.global.exception.ApiException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,7 +21,6 @@ import java.nio.charset.StandardCharsets;
 public class IcsController {
 
     private final InvitationService invitationService;
-
     /**
      * GET /ics/{token}.ics  (초대 토큰으로 단일 이벤트 ICS 다운로드)
      */
@@ -34,5 +37,21 @@ public class IcsController {
         res.setContentType("text/calendar; charset=utf-8");
         res.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
         res.getWriter().write(ics);
+    }
+
+    @GetMapping(value = "/api/invitations/ics/{token}", produces = "text/calendar")
+    public ResponseEntity<String> getIcs(@PathVariable String token) {
+        String ics;
+        try {
+            Event event = invitationService.getEventByToken(token);
+            ics = IcsBuilder.singleEvent(event);
+        } catch (ApiException e) {
+            ics = IcsBuilder.singleError("초대가 유효하지 않거나 만료되었습니다.");
+        }
+
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invite.ics")
+                .body(ics);
     }
 }

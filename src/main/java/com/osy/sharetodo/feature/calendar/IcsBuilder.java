@@ -38,4 +38,20 @@ public final class IcsBuilder {
                 .append("END:VCALENDAR\r\n");
         return sb.toString();
     }
+
+    public static String singleError(String message) {
+        StringBuilder sb = new StringBuilder(256);
+        sb.append("BEGIN:VCALENDAR\r\n")
+                .append("VERSION:2.0\r\n")
+                .append("PRODID:-//share-todo//EN\r\n")
+                .append("CALSCALE:GREGORIAN\r\n")
+                .append("BEGIN:VEVENT\r\n")
+                .append("SUMMARY:초대 오류\r\n")
+                .append("DESCRIPTION:").append(esc(message)).append("\r\n")
+                .append("DTSTART:20240101T000000Z\r\n")
+                .append("DTEND:20240101T000100Z\r\n")
+                .append("END:VEVENT\r\n")
+                .append("END:VCALENDAR\r\n");
+        return sb.toString();
+    }
 }
