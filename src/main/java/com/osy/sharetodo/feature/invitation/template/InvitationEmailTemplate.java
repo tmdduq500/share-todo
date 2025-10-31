@@ -13,12 +13,12 @@ public class InvitationEmailTemplate {
         return "[ShareTodo] 초대: " + safeTitle;
     }
 
-    public String body(String baseUrl, String token, String eventTitle, String eventDesc) {
+    public String body(String frontBaseUrl, String backBaseUrl, String token, String eventTitle, String eventDesc) {
         String safeTitle = StringEscapeUtils.escapeHtml4(eventTitle == null ? "일정" : eventTitle);
         String safeDesc  = StringEscapeUtils.escapeHtml4(eventDesc == null ? "" : eventDesc);
 
-        String acceptUrl = baseUrl + "/invite?token=" + token;
-        String icsUrl    = baseUrl + "/ics/" + token + ".ics";
+        String acceptUrl = frontBaseUrl + "/invite?token=" + token;
+        String icsUrl    = backBaseUrl + "/ics/" + token + ".ics";
 
         return """
                <div style="font-family:system-ui,Segoe UI,Apple SD Gothic Neo,Malgun Gothic,sans-serif;font-size:14px;color:#111">

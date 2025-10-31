@@ -93,7 +93,7 @@ public class AccountService {
 
         String token = resetTokenService.issue(emailNorm, Duration.ofMinutes(30)); // 30분 유효
         String subject = resetTemplate.subject();
-        String body = resetTemplate.body(appProps.getBaseUrl(), token, emailNorm);
+        String body = resetTemplate.body(appProps.getFrontBaseUrl(), appProps.getBackBaseUrl(), token, emailNorm);
         mailPort.send(emailNorm, subject, body);
     }
 

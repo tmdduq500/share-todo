@@ -11,7 +11,7 @@ class InvitationEmailTemplateTest {
     void subject_and_body() {
         InvitationEmailTemplate t = new InvitationEmailTemplate();
         String subject = t.subject("회의");
-        String body = t.body("http://localhost:8080", "TOKEN123", "회의", "설명");
+        String body = t.body("http://localhost:8080","http://localhost:8080", "TOKEN123", "회의", "설명");
 
         assertThat(subject).contains("회의");
         assertThat(body).contains("초대 수락하기");

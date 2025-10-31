@@ -10,9 +10,9 @@ public class PasswordResetEmailTemplate {
         return "[ShareTodo] 비밀번호 재설정 안내";
     }
 
-    public String body(String baseUrl, String token, String email) {
+    public String body(String frontBaseUrl, String backBaseUrl, String token, String email) {
         String safeEmail = StringEscapeUtils.escapeHtml4(email);
-        String link = baseUrl + "/reset-password?token=" + token; // 프론트 페이지
+        String link = frontBaseUrl + "/reset-password?token=" + token; // 프론트 페이지
 
         return """
                   <div style="font-family:system-ui,Segoe UI,Apple SD Gothic Neo,Malgun Gothic,sans-serif;font-size:14px;color:#111">

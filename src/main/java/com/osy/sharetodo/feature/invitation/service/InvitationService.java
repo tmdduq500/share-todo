@@ -85,7 +85,7 @@ public class InvitationService {
         if (req.getChannel() == InvitationChannel.EMAIL) {
             String to = normalizeEmail(req.getTarget());
             String subject = emailTemplate.subject(event.getTitle());
-            String body = emailTemplate.body(appProps.getBaseUrl(), rawToken, event.getTitle(), event.getDescription());
+            String body = emailTemplate.body(appProps.getFrontBaseUrl(), appProps.getBackBaseUrl(), rawToken, event.getTitle(), event.getDescription());
             mailPort.send(to, subject, body);
         }
 

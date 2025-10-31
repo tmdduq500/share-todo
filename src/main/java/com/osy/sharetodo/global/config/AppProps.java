@@ -10,7 +10,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "app")
 public class AppProps {
-    private String baseUrl;
+    private String frontBaseUrl;
+    private String backBaseUrl;
     private Mail mail = new Mail();
 
     @Getter
