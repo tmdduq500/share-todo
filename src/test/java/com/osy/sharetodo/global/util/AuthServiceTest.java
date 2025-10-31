@@ -10,6 +10,7 @@ import com.osy.sharetodo.global.security.JwtProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -29,6 +30,7 @@ class AuthServiceTest {
     private JwtProps props;
     private JwtProvider jwtProvider;
     private AuthService authService;
+    private StringRedisTemplate redisTemplate;
 
     @BeforeEach
     void setUp() {
@@ -46,7 +48,7 @@ class AuthServiceTest {
         jwtProvider = new JwtProvider(props);
         ReflectionTestUtils.invokeMethod(jwtProvider, "init");
 
-        authService = new AuthService(accountRepository, passwordEncoder, jwtProvider, props, rtService);
+        authService = new AuthService(accountRepository, passwordEncoder, jwtProvider, props, rtService, redisTemplate);
     }
 
     @Test
