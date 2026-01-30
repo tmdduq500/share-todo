@@ -1,0 +1,32 @@
+services:
+  app:
+    build: .
+    container_name: share-todo-app
+    env_file:
+      - .env.prod
+    depends_on:
+      - cloudsql
+      - redis
+    restart: always
+    ports:
+      - "8080:8080"   # (나중에 nginx 붙이면 외부 노출은 80/443만 남기고 이건 닫는 걸 권장)
+
+  cloudsql:
+    image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.21.0
+    container_name: cloudsql-proxy
+    command:
+      - "--address=0.0.0.0"
+      - "--port=3306"
+      - "project-61ceee4c-ef41-4d6e-a40:asia-northeast3:share-todo-database"
+    restart: always
+
+  redis:
+    image: redis:7
+    container_name: share-todo-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    restart: always
+
+volumes:
+  redis_data:
