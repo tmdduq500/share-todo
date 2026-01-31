@@ -10,7 +10,7 @@ services:
     restart: always
     expose:
       - "8080"
-      -
+
   cloudsql:
     image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.21.0
     container_name: cloudsql-proxy
