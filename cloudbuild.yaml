@@ -1,0 +1,54 @@
+steps:
+  # Backend build & push
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'build',
+        '-t', 'asia-northeast3-docker.pkg.dev/project-61ceee4c-ef41-4d6e-a40/share-todo-back/app:$SHORT_SHA',
+        '-t', 'asia-northeast3-docker.pkg.dev/project-61ceee4c-ef41-4d6e-a40/share-todo-back/app:latest',
+        '-f', 'share-todo-back/Dockerfile',
+        'share-todo-back'
+      ]
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'push',
+        'asia-northeast3-docker.pkg.dev/project-61ceee4c-ef41-4d6e-a40/share-todo-back/app:$SHORT_SHA'
+      ]
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'push',
+        'asia-northeast3-docker.pkg.dev/project-61ceee4c-ef41-4d6e-a40/share-todo-back/app:latest'
+      ]
+
+  # Frontend build & push
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'build',
+        '-t', 'asia-northeast3-docker.pkg.dev/project-61ceee4c-ef41-4d6e-a40/share-todo-front/nginx:$SHORT_SHA',
+        '-t', 'asia-northeast3-docker.pkg.dev/project-61ceee4c-ef41-4d6e-a40/share-todo-front/nginx:latest',
+        '-f', 'share-todo-front/Dockerfile',
+        'share-todo-front'
+      ]
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'push',
+        'asia-northeast3-docker.pkg.dev/project-61ceee4c-ef41-4d6e-a40/share-todo-front/nginx:$SHORT_SHA'
+      ]
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'push',
+        'asia-northeast3-docker.pkg.dev/project-61ceee4c-ef41-4d6e-a40/share-todo-front/nginx:latest'
+      ]
+
+images:
+  - 'asia-northeast3-docker.pkg.dev/project-61ceee4c-ef41-4d6e-a40/share-todo-back/app:latest'
+  - 'asia-northeast3-docker.pkg.dev/project-61ceee4c-ef41-4d6e-a40/share-todo-front/nginx:latest'
