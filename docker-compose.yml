@@ -1,6 +1,6 @@
 services:
   app:
-    build: ./share-todo-back
+    build: .
     container_name: share-todo-app
     env_file:
       - ./.env.prod
@@ -10,7 +10,7 @@ services:
     restart: always
     expose:
       - "8080"
-
+      -
   cloudsql:
     image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.21.0
     container_name: cloudsql-proxy
@@ -29,7 +29,7 @@ services:
     restart: always
 
   nginx:
-    build: ./share-todo-front
+    build: ../share-todo-front
     container_name: share-todo-nginx
     depends_on:
       - app
