@@ -1,9 +1,9 @@
 services:
   app:
-    build: ./backend
+    build: ./share-todo-back
     container_name: share-todo-app
     env_file:
-      - ./backend/.env.prod
+      - ./share-todo-back/.env.prod
     depends_on:
       - cloudsql
       - redis
@@ -29,7 +29,7 @@ services:
     restart: always
 
   nginx:
-    build: ./frontend
+    build: ./share-todo-front
     container_name: share-todo-nginx
     depends_on:
       - app
