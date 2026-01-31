@@ -3,7 +3,7 @@ services:
     build: ./share-todo-back
     container_name: share-todo-app
     env_file:
-      - ./share-todo-back/.env.prod
+      - ./.env.prod
     depends_on:
       - cloudsql
       - redis
