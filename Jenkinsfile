@@ -5,7 +5,7 @@ pipeline {
     PROJECT_ID = "project-61ceee4c-ef41-4d6e-a40"
     REGION     = "asia-northeast3"
     REPO       = "share-todo-back"
-    IMAGE_NAME = "backend"
+    IMAGE_NAME = "app"
     IMAGE      = "${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${IMAGE_NAME}"
 
     // 런타임 VM 정보
