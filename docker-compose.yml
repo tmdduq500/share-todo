@@ -6,6 +6,11 @@ services:
       - "--port=3306"
       - "project-61ceee4c-ef41-4d6e-a40:asia-northeast3:share-todo-database"
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "nc -z localhost 3306 || exit 1" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   redis:
     image: redis:7
