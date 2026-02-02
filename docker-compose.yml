@@ -1,41 +1,37 @@
 services:
+  cloudsql:
+    image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.21.0
+    command:
+      - "--address=0.0.0.0"
+      - "--port=3306"
+      - "project-61ceee4c-ef41-4d6e-a40:asia-northeast3:share-todo-database"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
   app:
     image: asia-northeast3-docker.pkg.dev/project-61ceee4c-ef41-4d6e-a40/share-todo-back/app:latest
-    container_name: share-todo-app
     env_file:
       - ./.env.prod
     depends_on:
       - cloudsql
       - redis
-    restart: always
+    restart: unless-stopped
     expose:
       - "8080"
 
-  cloudsql:
-    image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.21.0
-    container_name: cloudsql-proxy
-    command:
-      - "--address=0.0.0.0"
-      - "--port=3306"
-      - "project-61ceee4c-ef41-4d6e-a40:asia-northeast3:share-todo-database"
-    restart: always
-
-  redis:
-    image: redis:7
-    container_name: share-todo-redis
-    command: [ "redis-server", "--appendonly", "yes" ]
-    volumes:
-      - redis_data:/data
-    restart: always
-
   nginx:
     image: asia-northeast3-docker.pkg.dev/project-61ceee4c-ef41-4d6e-a40/share-todo-front/nginx:latest
-    container_name: share-todo-nginx
     depends_on:
       - app
     ports:
       - "80:80"
-    restart: always
+    restart: unless-stopped
 
 volumes:
   redis_data:

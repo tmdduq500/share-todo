@@ -11,7 +11,8 @@ pipeline {
     // 런타임 VM 정보
     RUNTIME_HOST = "35.216.18.47"
     RUNTIME_USER = "osy9907"
-    APP_DIR = "/home/osy9907/deploy/share-todo-back"  // docker-compose.yml 있는 위치로
+    APP_DIR      = "/home/osy9907/deploy/share-todo-back"  // docker-compose.yml 있는 위치
+    COMPOSE_FILE = "docker-compose.yml"
   }
 
   stages {
@@ -27,7 +28,6 @@ pipeline {
           set -e
           GIT_SHA=$(git rev-parse --short HEAD)
           echo "GIT_SHA=$GIT_SHA" > .gitsha
-
           docker build -t ${IMAGE}:${GIT_SHA} -t ${IMAGE}:latest .
         '''
       }
@@ -37,8 +37,7 @@ pipeline {
       steps {
         sh '''
           set -e
-          GIT_SHA=$(cat .gitsha | cut -d= -f2)
-
+          GIT_SHA=$(cut -d= -f2 .gitsha)
           docker push ${IMAGE}:${GIT_SHA}
           docker push ${IMAGE}:latest
         '''
@@ -53,8 +52,15 @@ pipeline {
             ssh -o StrictHostKeyChecking=no ${RUNTIME_USER}@${RUNTIME_HOST} "
               set -e
               cd ${APP_DIR}
-              docker compose -f docker-compose.yml pull app
-              docker compose -f docker-compose.yml up -d --no-deps --no-build app
+
+              # 1) 기반 서비스(Cloud SQL Proxy / Redis) 항상 보장
+              docker compose -f ${COMPOSE_FILE} up -d cloudsql redis
+
+              # 2) 앱만 교체 배포
+              docker compose -f ${COMPOSE_FILE} pull app
+              docker compose -f ${COMPOSE_FILE} up -d --no-deps --no-build app
+
+              # 3) 사용 안 하는 dangling 이미지 정리(안전)
               docker image prune -f
             "
           '''
