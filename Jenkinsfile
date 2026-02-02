@@ -53,8 +53,8 @@ pipeline {
             ssh -o StrictHostKeyChecking=no ${RUNTIME_USER}@${RUNTIME_HOST} "
               set -e
               cd ${APP_DIR}
-              docker compose pull app
-              docker compose up -d --no-deps app
+              docker compose -f docker-compose.yml pull app
+              docker compose -f docker-compose.yml up -d --no-deps --no-build app
               docker image prune -f
             "
           '''
