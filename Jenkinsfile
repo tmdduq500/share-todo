@@ -11,7 +11,7 @@ pipeline {
     // 런타임 VM 정보
     RUNTIME_HOST = "35.216.18.47"
     RUNTIME_USER = "osy9907"
-    APP_DIR      = "/home/osy9907/share-todo"  // docker-compose.yml 있는 위치로
+    APP_DIR = "/home/osy9907/deploy/share-todo-back"  // docker-compose.yml 있는 위치로
   }
 
   stages {
