@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -43,7 +44,7 @@ public class JwtProvider {
 
     public String createAccessToken(String subject) {
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + props.getAccessTokenTtlMinutes());
+        Date expiry = new Date(now.getTime() + Duration.ofMinutes(props.getAccessTokenTtlMinutes()).toMillis());
         String jti = UUID.randomUUID().toString();
 
         return Jwts.builder()
@@ -52,15 +53,6 @@ public class JwtProvider {
                 .setExpiration(expiry)
                 .setId(jti)
                 .claim("typ", "access")
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
-    }
-
-    public String createRefreshToken(String accountUid, String jti, String famId) {
-        Instant now = Instant.now();
-        Instant exp = now.plus(props.getRefreshTokenTtlDays(), ChronoUnit.DAYS);
-        return base(accountUid, "refresh", jti, now, exp)
-                .claim("fam", famId)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
