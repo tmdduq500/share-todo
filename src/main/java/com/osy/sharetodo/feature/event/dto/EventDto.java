@@ -15,7 +15,6 @@ public final class EventDto {
         @Size(max = 200)
         private String title;
 
-        @Size(max = 2000)
         private String description;
 
         @NotBlank
@@ -27,10 +26,8 @@ public final class EventDto {
         @NotBlank
         private String timezone;
 
-        @Size(max = 255)
         private String location;
 
-        @NotNull
         private Boolean allDay = false;
 
         @NotNull

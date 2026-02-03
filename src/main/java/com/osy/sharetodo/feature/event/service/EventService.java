@@ -50,8 +50,8 @@ public class EventService {
                 });
 
         // 3) 시간 변환 (로컬+TZ → UTC)
-        LocalDateTime startsUtc = TimeUtils.toUtc(req.getStartAtLocal(), req.getTimezone());
-        LocalDateTime endsUtc = TimeUtils.toUtc(req.getEndAtLocal(), req.getTimezone());
+        LocalDateTime startsUtc = TimeUtils.toUtcFromIsoZ(req.getStartAtLocal(), req.getTimezone());
+        LocalDateTime endsUtc = TimeUtils.toUtcFromIsoZ(req.getEndAtLocal(), req.getTimezone());
         if (!endsUtc.isAfter(startsUtc)) {
             throw new ApiException(ErrorCode.VALIDATION_ERROR, "종료 시각이 시작 시각 이후여야 합니다.");
         }

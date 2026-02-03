@@ -19,4 +19,11 @@ public class TimeUtils {
     public static String toIsoZ(LocalDateTime utc) {
         return utc.atOffset(ZoneOffset.UTC).toString();
     }
+
+    public static LocalDateTime toUtcFromIsoZ(String isoZ, String zoneId) {
+        ZoneId zid = ZoneId.of(zoneId);
+        Instant instant = Instant.parse(isoZ);
+        return LocalDateTime.ofInstant(instant, zid).atZone(zid).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+    }
+
 }
