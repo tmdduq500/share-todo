@@ -24,7 +24,7 @@ public class IcsController {
     /**
      * GET /ics/{token}.ics  (초대 토큰으로 단일 이벤트 ICS 다운로드)
      */
-    @GetMapping(value = "/ics/{token}.ics", produces = "text/calendar")
+    @GetMapping(value = "/api/ics/{token}.ics", produces = "text/calendar")
     public void download(@PathVariable String token, HttpServletResponse res) throws IOException {
         var event = invitationService.getEventByToken(token);
 
