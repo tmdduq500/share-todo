@@ -107,12 +107,9 @@ public class InvitationService {
 
         Participant participant = participantRepository
                 .findByEvent_IdAndContactHash(inv.getEvent().getId(), inv.getContactHash())
-//                .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, "참가자를 찾을 수 없습니다."));
-                .orElse(null);
+                .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, "참가자를 찾을 수 없습니다."));
 
-        if (participant != null) {
-            participant.accept();
-        }
+        participant.accept();
         inv.accept();
 
         return makeAcceptedRes(inv.getEvent().getUid());
