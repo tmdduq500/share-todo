@@ -36,7 +36,24 @@ services:
       - app
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      # nginx 설정을 호스트에서 주입
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+
+      # certbot 인증용 webroot
+      - ./certbot/www:/var/www/certbot
+
+      # 발급된 인증서 저장
+      - ./certbot/conf:/etc/letsencrypt
     restart: unless-stopped
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    restart: "no"
 
 volumes:
   redis_data:
