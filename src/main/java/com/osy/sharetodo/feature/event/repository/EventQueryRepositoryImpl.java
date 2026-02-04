@@ -25,7 +25,7 @@ public class EventQueryRepositoryImpl implements EventQueryRepository {
     public Page<Event> searchByOwnerAndFilters(Long ownerPersonId, LocalDateTime fromUtc, LocalDateTime toUtc, String keyword, Pageable pageable) {
         QEvent e = QEvent.event;
 
-        OrderSpecifier<?> order = new OrderSpecifier<>(Order.ASC, e.startsAtUtc);
+        OrderSpecifier<?> order = new OrderSpecifier<>(Order.DESC, e.startsAtUtc);
 
         List<Event> content = queryFactory
                 .selectFrom(e)
