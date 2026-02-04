@@ -179,6 +179,7 @@ public class EventService {
             EventListRes r = new EventListRes();
             r.setUid(e.getUid());
             r.setTitle(e.getTitle());
+            r.setDescription(e.getDescription());
             r.setStartsAtUtc(e.getStartsAtUtc().atOffset(java.time.ZoneOffset.UTC).toString());
             r.setEndsAtUtc(e.getEndsAtUtc().atOffset(java.time.ZoneOffset.UTC).toString());
             r.setLocation(e.getLocation());
