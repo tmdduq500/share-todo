@@ -6,7 +6,10 @@ import com.osy.sharetodo.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/invitations")
@@ -23,6 +26,7 @@ public class InvitationController {
 
     @PostMapping("/accept")
     public ApiResponse<InvitationDto.AcceptRes> accept(@Valid @RequestBody InvitationDto.AcceptReq req) {
-        return ApiResponse.ok(invitationService.accept(req));
+        String accountUid = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ApiResponse.ok(invitationService.accept(req, accountUid));
     }
 }

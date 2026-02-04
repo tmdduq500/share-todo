@@ -48,8 +48,8 @@ class EventServiceListTest {
 
         Person owner = Person.builder()
                 .id(100L)
-                .build();;
-        when(personRepository.findByAccount_Id(10L)).thenReturn(List.of(owner));
+                .build();
+        when(personRepository.findByAccount_Id(10L)).thenReturn(Optional.ofNullable(owner));
 
         Event e1 = Event.builder()
                 .uid("EVT1")

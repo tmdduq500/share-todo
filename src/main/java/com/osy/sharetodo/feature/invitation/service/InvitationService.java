@@ -1,5 +1,7 @@
 package com.osy.sharetodo.feature.invitation.service;
 
+import com.osy.sharetodo.feature.account.domain.Account;
+import com.osy.sharetodo.feature.account.repository.AccountRepository;
 import com.osy.sharetodo.feature.event.domain.Event;
 import com.osy.sharetodo.feature.event.repository.EventRepository;
 import com.osy.sharetodo.feature.invitation.domain.Invitation;
@@ -9,8 +11,6 @@ import com.osy.sharetodo.feature.invitation.repository.InvitationRepository;
 import com.osy.sharetodo.feature.invitation.template.InvitationEmailTemplate;
 import com.osy.sharetodo.feature.notification.mail.MailPort;
 import com.osy.sharetodo.feature.participant.domain.Participant;
-import com.osy.sharetodo.feature.participant.domain.ParticipantRole;
-import com.osy.sharetodo.feature.participant.domain.ParticipantStatus;
 import com.osy.sharetodo.feature.participant.repository.ParticipantRepository;
 import com.osy.sharetodo.feature.person.domain.Person;
 import com.osy.sharetodo.feature.person.repository.PersonRepository;
@@ -41,10 +41,13 @@ public class InvitationService {
     private final MailPort mailPort;
     private final AppProps appProps;
     private final InvitationEmailTemplate emailTemplate;
+    private final AccountRepository accountRepository;
+    private final PersonRepository personRepository;
 
     private static String normalizeEmail(String email) {
         return StringUtils.trimToEmpty(email).toLowerCase();
     }
+
     private static String normalizePhone(String phone) {
         return StringUtils.trimToEmpty(phone).replaceAll("[^0-9+]", "");
     }
@@ -93,10 +96,20 @@ public class InvitationService {
     }
 
     @Transactional
-    public InvitationDto.AcceptRes accept(InvitationDto.AcceptReq req) {
+    public InvitationDto.AcceptRes accept(InvitationDto.AcceptReq req, String accountUid) {
         byte[] tokenHash = inviteTokenService.hash(req.getToken());
         Invitation inv = invitationRepository.findByTokenHash(tokenHash)
                 .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED, "유효하지 않은 초대 토큰입니다."));
+
+        Account acc;
+        Person person = null;
+        if (accountUid != null && !accountUid.isBlank()) {
+            acc = accountRepository.findByUid(accountUid)
+                    .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED, "계정을 찾을 수 없습니다."));
+
+            person = personRepository.findByAccount_Id(acc.getId())
+                    .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, "소유자 정보를 찾을 수 없습니다."));
+        }
 
         if (inv.isExpired(LocalDateTime.now(ZoneOffset.UTC)))
             throw new ApiException(ErrorCode.UNAUTHORIZED, "초대 토큰이 만료되었습니다.");
@@ -109,6 +122,9 @@ public class InvitationService {
                 .findByEvent_IdAndContactHash(inv.getEvent().getId(), inv.getContactHash())
                 .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, "참가자를 찾을 수 없습니다."));
 
+        if (person != null) {
+            participant.updatePerson(person);
+        }
         participant.accept();
         inv.accept();
 
@@ -122,7 +138,9 @@ public class InvitationService {
         return res;
     }
 
-    /** 초대 토큰으로 이벤트 조회(ICS용) */
+    /**
+     * 초대 토큰으로 이벤트 조회(ICS용)
+     */
     public Event getEventByToken(String rawToken) {
         byte[] tokenHash = inviteTokenService.hash(rawToken);
         Invitation inv = invitationRepository.findByTokenHash(tokenHash)

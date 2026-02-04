@@ -41,7 +41,7 @@ public class EventService {
 
         // 2) 소유자 Person 확보(없으면 생성)
         Person owner = personRepository.findByAccount_Id(acc.getId())
-                .stream().findFirst().orElseGet(() -> {
+                .orElseGet(() -> {
                     Person p = Person.builder()
                             .uid(ulids.newUlid())
                             .account(acc)
@@ -109,7 +109,6 @@ public class EventService {
                 .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED, "계정을 찾을 수 없습니다."));
 
         Person owner = personRepository.findByAccount_Id(acc.getId())
-                .stream().findFirst()
                 .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, "소유자 정보를 찾을 수 없습니다."));
 
         // 기간 변환
@@ -154,7 +153,6 @@ public class EventService {
                 .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED, "계정을 찾을 수 없습니다."));
 
         Person me = personRepository.findByAccount_Id(acc.getId())
-                .stream().findFirst()
                 .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, "사용자 정보를 찾을 수 없습니다."));
 
         LocalDateTime fromUtc = null, toUtc = null;

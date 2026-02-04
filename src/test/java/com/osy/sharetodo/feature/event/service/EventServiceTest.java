@@ -42,13 +42,13 @@ class EventServiceTest {
         // given
         Account acc = Account.builder().id(1L).uid("ACCULID").emailNorm("user@example.com").build();
         when(accountRepository.findByUid("ACCULID")).thenReturn(Optional.of(acc));
-        when(personRepository.findByAccount_Id(1L)).thenReturn(List.of());
+        when(personRepository.findByAccount_Id(1L)).thenReturn(Optional.empty());
 
         Event saved = Event.builder()
                 .uid("01ABCULIDEVENT")
                 .title("회의")
-                .startsAtUtc(LocalDateTime.of(2025, 11, 1, 5, 0))
-                .endsAtUtc(LocalDateTime.of(2025, 11, 1, 6, 0))
+                .startsAtUtc(LocalDateTime.of(2025, 11, 1, 14, 0))
+                .endsAtUtc(LocalDateTime.of(2025, 11, 1, 15, 0))
                 .timezone("Asia/Seoul")
                 .visibility(Visibility.PRIVATE)
                 .build();
@@ -57,8 +57,8 @@ class EventServiceTest {
         EventDto.EventCreateReq req = new EventDto.EventCreateReq();
         req.setTitle("회의");
         req.setDescription("설명");
-        req.setStartAtLocal("2025-11-01T14:00:00");
-        req.setEndAtLocal("2025-11-01T15:00:00");
+        req.setStartAtLocal("2025-11-01T14:00:00Z");
+        req.setEndAtLocal("2025-11-01T15:00:00Z");
         req.setTimezone("Asia/Seoul");
         req.setLocation("온라인");
         req.setAllDay(false);
@@ -72,14 +72,14 @@ class EventServiceTest {
 
         // then
         assertThat(res.getUid()).isEqualTo("01ABCULIDEVENT");
-        assertThat(start).isEqualTo(Instant.parse("2025-11-01T05:00:00Z"));
-        assertThat(end).isEqualTo(Instant.parse("2025-11-01T06:00:00Z"));
+        assertThat(start).isEqualTo(Instant.parse("2025-11-01T14:00:00Z"));
+        assertThat(end).isEqualTo(Instant.parse("2025-11-01T15:00:00Z"));
         verify(personRepository).save(any(Person.class));
         verify(eventRepository).save(argThat(e ->
                 e.getTitle().equals("회의") &&
                         e.getTimezone().equals("Asia/Seoul") &&
-                        e.getStartsAtUtc().equals(LocalDateTime.of(2025,11,1,5,0)) &&
-                        e.getEndsAtUtc().equals(LocalDateTime.of(2025,11,1,6,0))
+                        e.getStartsAtUtc().equals(LocalDateTime.of(2025,11,1,14,0)) &&
+                        e.getEndsAtUtc().equals(LocalDateTime.of(2025,11,1,15,0))
         ));
     }
 

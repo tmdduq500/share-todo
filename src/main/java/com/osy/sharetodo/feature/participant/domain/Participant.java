@@ -70,5 +70,10 @@ public class Participant extends BaseEntity {
     public void accept() {
         this.status = ParticipantStatus.ACCEPTED;
     }
+
+    /** 참가자(person) 연결 */
+    public void updatePerson(Person person) {
+        this.person = person;
+    }
 }
 
