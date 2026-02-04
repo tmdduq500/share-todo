@@ -141,6 +141,7 @@ public class InvitationService {
     /**
      * 초대 토큰으로 이벤트 조회(ICS용)
      */
+    @Transactional
     public Event getEventByToken(String rawToken) {
         byte[] tokenHash = inviteTokenService.hash(rawToken);
         Invitation inv = invitationRepository.findByTokenHash(tokenHash)
