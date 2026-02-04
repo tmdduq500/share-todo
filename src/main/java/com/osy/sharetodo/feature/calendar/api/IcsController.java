@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
@@ -24,10 +25,9 @@ public class IcsController {
     /**
      * GET /ics/{token}.ics  (초대 토큰으로 단일 이벤트 ICS 다운로드)
      */
-    @GetMapping(value = "/api/ics/{token}.ics", produces = "text/calendar")
-    public void download(@PathVariable String token, HttpServletResponse res) throws IOException {
+    @GetMapping(value = "/api/ics", produces = "text/calendar; charset=utf-8")
+    public void download(@RequestParam String token, HttpServletResponse res) throws IOException {
         var event = invitationService.getEventByToken(token);
-
         String ics = IcsBuilder.singleEvent(event);
 
         String filename = StringUtils.defaultIfBlank(event.getTitle(), "event")
@@ -52,6 +52,7 @@ public class IcsController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invite.ics")
+                .header(HttpHeaders.CONTENT_TYPE, "text/calendar; charset=utf-8")
                 .body(ics);
     }
 }
