@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.stereotype.Component;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 @Component
 @RequiredArgsConstructor
 public class InvitationEmailTemplate {
@@ -18,7 +21,7 @@ public class InvitationEmailTemplate {
         String safeDesc  = StringEscapeUtils.escapeHtml4(eventDesc == null ? "" : eventDesc);
 
         String acceptUrl = frontBaseUrl + "/invite?token=" + token;
-        String icsUrl    = backBaseUrl + "/ics/" + token + ".ics";
+        String icsUrl = backBaseUrl + "/api/ics?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
 
         return """
                <div style="font-family:system-ui,Segoe UI,Apple SD Gothic Neo,Malgun Gothic,sans-serif;font-size:14px;color:#111">
