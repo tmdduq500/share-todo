@@ -11,6 +11,7 @@ import lombok.Setter;
 public class EventListRes {
     private String uid;
     private String title;
+    private String description;
     private String startsAtUtc;
     private String endsAtUtc;
     private String location;
