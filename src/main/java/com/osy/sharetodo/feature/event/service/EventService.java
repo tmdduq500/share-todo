@@ -153,9 +153,9 @@ public class EventService {
         Account acc = accountRepository.findByUid(accountUid)
                 .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED, "계정을 찾을 수 없습니다."));
 
-        Person inviter = personRepository.findByAccount_Id(acc.getId())
+        Person me = personRepository.findByAccount_Id(acc.getId())
                 .stream().findFirst()
-                .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, "소유자 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, "사용자 정보를 찾을 수 없습니다."));
 
         LocalDateTime fromUtc = null, toUtc = null;
         if (eventListCondition.getFromLocal() != null && eventListCondition.getTimezone() != null) {
@@ -167,11 +167,11 @@ public class EventService {
 
         int page = eventListCondition.getPage() == null ? 0 : Math.max(0, eventListCondition.getPage());
         int size = eventListCondition.getSize() == null ? 20 : Math.min(100, Math.max(1, eventListCondition.getSize()));
-        Sort sort = Sort.by(Sort.Direction.ASC, "startsAtUtc"); // 유지
+        Sort sort = Sort.by(Sort.Direction.ASC, "startsAtUtc");
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        var pageEvents = eventRepository.searchByInviterAndFilters(
-                inviter.getId(),
+        var pageEvents = eventRepository.searchByParticipantAndFilters(
+                me.getId(),
                 fromUtc, toUtc,
                 eventListCondition.getQ(),
                 pageable
@@ -181,7 +181,6 @@ public class EventService {
             EventListRes r = new EventListRes();
             r.setUid(e.getUid());
             r.setTitle(e.getTitle());
-            r.setDescription(e.getDescription());
             r.setStartsAtUtc(e.getStartsAtUtc().atOffset(java.time.ZoneOffset.UTC).toString());
             r.setEndsAtUtc(e.getEndsAtUtc().atOffset(java.time.ZoneOffset.UTC).toString());
             r.setLocation(e.getLocation());
@@ -191,5 +190,6 @@ public class EventService {
 
         return PageResponse.of(mapped);
     }
+
 
 }
