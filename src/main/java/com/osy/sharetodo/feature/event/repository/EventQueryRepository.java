@@ -8,4 +8,6 @@ import java.time.LocalDateTime;
 
 public interface EventQueryRepository {
     Page<Event> searchByOwnerAndFilters(Long ownerPersonId, LocalDateTime fromUtc, LocalDateTime toUtc, String keyword, Pageable pageable);
+
+    Page<Event> searchByInviterAndFilters(Long inviterPersonId, LocalDateTime fromUtc, LocalDateTime toUtc, String keyword, Pageable pageable);
 }

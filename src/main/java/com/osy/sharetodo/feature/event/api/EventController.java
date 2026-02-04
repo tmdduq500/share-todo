@@ -38,4 +38,11 @@ public class EventController {
                 .getAuthentication().getPrincipal();
         return ApiResponse.ok(eventService.list(accountUid, eventListCondition));
     }
+
+    @GetMapping("/invite")
+    public ApiResponse<PageResponse<EventListRes>> invitedList(@Valid EventListCondition eventListCondition) {
+        String accountUid = (String) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        return ApiResponse.ok(eventService.invitedList(accountUid, eventListCondition));
+    }
 }

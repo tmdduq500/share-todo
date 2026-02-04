@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class EventService {
 
     private final EventRepository eventRepository;
@@ -86,7 +87,6 @@ public class EventService {
         return res;
     }
 
-    @Transactional
     public EventDto.EventRes getByUid(String uid) {
         Event e = eventRepository.findByUid(uid)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "이벤트를 찾을 수 없습니다."));
@@ -104,7 +104,6 @@ public class EventService {
         return res;
     }
 
-    @Transactional
     public PageResponse<EventListRes> list(String accountUid, EventListCondition eventListCondition) {
         Account acc = accountRepository.findByUid(accountUid)
                 .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED, "계정을 찾을 수 없습니다."));
@@ -148,4 +147,47 @@ public class EventService {
 
         return PageResponse.of(mapped);
     }
+
+    public PageResponse<EventListRes> invitedList(String accountUid, EventListCondition eventListCondition) {
+        Account acc = accountRepository.findByUid(accountUid)
+                .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED, "계정을 찾을 수 없습니다."));
+
+        Person inviter = personRepository.findByAccount_Id(acc.getId())
+                .stream().findFirst()
+                .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, "소유자 정보를 찾을 수 없습니다."));
+
+        LocalDateTime fromUtc = null, toUtc = null;
+        if (eventListCondition.getFromLocal() != null && eventListCondition.getTimezone() != null) {
+            fromUtc = TimeUtils.toUtc(eventListCondition.getFromLocal(), eventListCondition.getTimezone());
+        }
+        if (eventListCondition.getToLocal() != null && eventListCondition.getTimezone() != null) {
+            toUtc = TimeUtils.toUtc(eventListCondition.getToLocal(), eventListCondition.getTimezone());
+        }
+
+        int page = eventListCondition.getPage() == null ? 0 : Math.max(0, eventListCondition.getPage());
+        int size = eventListCondition.getSize() == null ? 20 : Math.min(100, Math.max(1, eventListCondition.getSize()));
+        Sort sort = Sort.by(Sort.Direction.ASC, "startsAtUtc"); // 유지
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        var pageEvents = eventRepository.searchByInviterAndFilters(
+                inviter.getId(),
+                fromUtc, toUtc,
+                eventListCondition.getQ(),
+                pageable
+        );
+
+        var mapped = pageEvents.map(e -> {
+            EventListRes r = new EventListRes();
+            r.setUid(e.getUid());
+            r.setTitle(e.getTitle());
+            r.setStartsAtUtc(e.getStartsAtUtc().atOffset(java.time.ZoneOffset.UTC).toString());
+            r.setEndsAtUtc(e.getEndsAtUtc().atOffset(java.time.ZoneOffset.UTC).toString());
+            r.setLocation(e.getLocation());
+            r.setVisibility(e.getVisibility());
+            return r;
+        });
+
+        return PageResponse.of(mapped);
+    }
+
 }
