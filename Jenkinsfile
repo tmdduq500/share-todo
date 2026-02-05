@@ -46,24 +46,35 @@ pipeline {
 
     stage("Deploy to Runtime VM") {
       steps {
-        sshagent(credentials: ['runtime-ssh']) {
-          sh '''
-            set -e
-            ssh -o StrictHostKeyChecking=no ${RUNTIME_USER}@${RUNTIME_HOST} "
+        // ✅ Jenkins Credentials에서 .env.prod를 파일로 가져오기
+        withCredentials([file(credentialsId: 'share-todo-env-prod', variable: 'ENV_PROD_FILE')]) {
+          sshagent(credentials: ['runtime-ssh']) {
+            sh '''
               set -e
-              cd ${APP_DIR}
 
-              # 1) 기반 서비스(Cloud SQL Proxy / Redis) 항상 보장
-              docker compose -f ${COMPOSE_FILE} up -d cloudsql redis
+              # .env.prod 업로드
+              scp -o StrictHostKeyChecking=no "${ENV_PROD_FILE}" ${RUNTIME_USER}@${RUNTIME_HOST}:${APP_DIR}/.env.prod.new
 
-              # 2) 앱만 교체 배포
-              docker compose -f ${COMPOSE_FILE} pull app
-              docker compose -f ${COMPOSE_FILE} up -d --no-deps --no-build app
+              ssh -o StrictHostKeyChecking=no ${RUNTIME_USER}@${RUNTIME_HOST} "
+                set -e
+                cd ${APP_DIR}
 
-              # 3) 사용 안 하는 dangling 이미지 정리(안전)
-              docker image prune -f
-            "
-          '''
+                # 원자적 교체(깨진 파일 방지)
+                mv .env.prod.new .env.prod
+                chmod 600 .env.prod || true
+
+                # 기반 서비스 보장
+                docker compose -f ${COMPOSE_FILE} up -d cloudsql redis
+
+                # 앱만 교체 배포
+                docker compose -f ${COMPOSE_FILE} pull app
+                docker compose -f ${COMPOSE_FILE} up -d --no-deps --no-build app
+
+                # 사용 안 하는 dangling 이미지 정리
+                docker image prune -f
+              "
+            '''
+          }
         }
       }
     }
