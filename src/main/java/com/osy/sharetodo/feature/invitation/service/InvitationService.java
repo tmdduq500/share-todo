@@ -165,7 +165,7 @@ public class InvitationService {
 
 
         if (!event.getOwner().equals(person)) {
-            throw new ApiException(ErrorCode.INTERNAL_ERROR, "일정을 만든 계정과 로그인한 계정이 일치하지 않습니다.");
+            throw new ApiException(ErrorCode.FORBIDDEN, "일정을 만든 계정과 로그인한 계정이 일치하지 않습니다.");
         }
 
 
