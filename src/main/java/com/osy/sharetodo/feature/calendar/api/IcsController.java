@@ -56,7 +56,7 @@ public class IcsController {
     }
 
     @GetMapping(value = "/me", produces = "text/calendar; charset=utf-8")
-    public ResponseEntity<String> getIcsForMe(String eventUid) {
+    public ResponseEntity<String> getIcsForMe(@RequestParam String eventUid) {
         String accountUid = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         String ics;
