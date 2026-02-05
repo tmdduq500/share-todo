@@ -28,7 +28,16 @@ pipeline {
           set -e
           GIT_SHA=$(git rev-parse --short HEAD)
           echo "GIT_SHA=$GIT_SHA" > .gitsha
-          docker build -t ${IMAGE}:${GIT_SHA} -t ${IMAGE}:latest .
+
+           # buildx builder 보장(이미 있으면 스킵)
+           docker buildx inspect default >/dev/null 2>&1 || docker buildx create --name default --use
+           docker buildx use default
+
+           docker buildx build \
+             --load \
+             -t ${IMAGE}:${GIT_SHA} \
+             -t ${IMAGE}:latest \
+             .
         '''
       }
     }
