@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -47,6 +48,24 @@ public class IcsController {
             ics = IcsBuilder.singleError("초대가 유효하지 않거나 만료되었습니다.");
         }
 
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invite.ics")
+                .header(HttpHeaders.CONTENT_TYPE, "text/calendar; charset=utf-8")
+                .body(ics);
+    }
+
+    @GetMapping(value = "/me", produces = "text/calendar; charset=utf-8")
+    public ResponseEntity<String> getIcsForMe(String eventUid) {
+        String accountUid = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        String ics;
+        try {
+            Event event = invitationService.getIcsForMe(eventUid, accountUid);
+            ics = IcsBuilder.singleEvent(event);
+        } catch (ApiException e) {
+            ics = IcsBuilder.singleError("등록한 일정이 유효하지 않습니다.");
+        }
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invite.ics")

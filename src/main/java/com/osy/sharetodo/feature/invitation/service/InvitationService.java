@@ -151,4 +151,24 @@ public class InvitationService {
         }
         return inv.getEvent();
     }
+
+    @Transactional
+    public Event getIcsForMe(String eventUid, String accountUid) {
+        Event event = eventRepository.findByUid(eventUid)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "이벤트를 찾을 수 없습니다."));
+
+        Account acc = accountRepository.findByUid(accountUid)
+                .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED, "계정을 찾을 수 없습니다."));
+
+        Person person = personRepository.findByAccount_Id(acc.getId())
+                .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, "소유자 정보를 찾을 수 없습니다."));
+
+
+        if (!event.getOwner().equals(person)) {
+            throw new ApiException(ErrorCode.INTERNAL_ERROR, "일정을 만든 계정과 로그인한 계정이 일치하지 않습니다.");
+        }
+
+
+        return event;
+    }
 }
