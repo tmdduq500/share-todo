@@ -21,7 +21,7 @@ public class InvitationEmailTemplate {
         String safeDesc  = StringEscapeUtils.escapeHtml4(eventDesc == null ? "" : eventDesc);
 
         String acceptUrl = frontBaseUrl + "/invite?token=" + token;
-        String icsUrl = backBaseUrl + "/api/ics?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+        String icsUrl = backBaseUrl + "/api/ics/invitations?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
 
         return """
                <div style="font-family:system-ui,Segoe UI,Apple SD Gothic Neo,Malgun Gothic,sans-serif;font-size:14px;color:#111">
