@@ -69,7 +69,7 @@ services:
       - certbot_www:/var/www/certbot
     command: >
       certonly --webroot -w /var/www/certbot
-      -d ohsy.kro.kr
+      -d ohsy.store
       --agree-tos --no-eff-email
       -m YOUR_EMAIL_HERE
 
