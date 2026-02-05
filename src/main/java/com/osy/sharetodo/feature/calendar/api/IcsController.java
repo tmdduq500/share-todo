@@ -68,7 +68,7 @@ public class IcsController {
         }
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invite.ics")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"my-event.ics\"")
                 .header(HttpHeaders.CONTENT_TYPE, "text/calendar; charset=utf-8")
                 .body(ics);
     }
