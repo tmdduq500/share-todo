@@ -9,23 +9,21 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/ics")
 public class IcsController {
 
     private final InvitationService invitationService;
     /**
      * GET /ics/{token}.ics  (초대 토큰으로 단일 이벤트 ICS 다운로드)
      */
-    @GetMapping(value = "/api/ics", produces = "text/calendar; charset=utf-8")
+    @GetMapping(produces = "text/calendar; charset=utf-8")
     public void download(@RequestParam String token, HttpServletResponse res) throws IOException {
         var event = invitationService.getEventByToken(token);
         String ics = IcsBuilder.singleEvent(event);
@@ -39,8 +37,8 @@ public class IcsController {
         res.getWriter().write(ics);
     }
 
-    @GetMapping(value = "/api/invitations/ics/{token}", produces = "text/calendar")
-    public ResponseEntity<String> getIcs(@PathVariable String token) {
+    @GetMapping(value = "/invitations", produces = "text/calendar")
+    public ResponseEntity<String> getIcs(@RequestParam String token) {
         String ics;
         try {
             Event event = invitationService.getEventByToken(token);
