@@ -39,12 +39,12 @@ services:
       - "443:443"
     restart: unless-stopped
     volumes:
-      # conf.d 디렉토리 통째로 마운트(운영/부팅 conf 교체가 쉬움)
-      - /deploy/share-todo-front/nginx/conf.d:/etc/nginx/conf.d:ro
+      # Git에서 가져오는 nginx conf를 그대로 마운트(기존 방식 유지)
+      - /home/osy9907/deploy/share-todo-front/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
 
-      # Let's Encrypt 인증서/챌린지용 볼륨
-      - letsencrypt:/etc/letsencrypt
-      - certbot_www:/var/www/certbot
+      # 호스트 certbot webroot & 인증서 마운트
+      - /var/www/certbot:/var/www/certbot:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
 
   # 갱신 전용(12시간마다 renew 시도)
   certbot:
