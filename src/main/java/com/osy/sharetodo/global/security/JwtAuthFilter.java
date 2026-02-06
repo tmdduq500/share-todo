@@ -1,9 +1,10 @@
 package com.osy.sharetodo.global.security;
 
 import com.osy.sharetodo.global.exception.ApiException;
-import com.osy.sharetodo.global.exception.ErrorCode;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,37 +32,65 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-            try {
-                Jws<Claims> jws = jwtProvider.parse(token);
-                jwtProvider.assertType(jws, "access");
-
-                String jti = jws.getBody().getId();
-                if (jti != null && Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:access:" + jti))) {
-                    throw new ApiException(ErrorCode.UNAUTHORIZED, "이미 로그아웃된 토큰입니다.");
-                }
-
-                String accountUid = jws.getBody().getSubject();
-                AbstractAuthenticationToken authentication = new AbstractAuthenticationToken(
-                        List.of(new SimpleGrantedAuthority("ROLE_USER"))) {
-                    @Override
-                    public Object getCredentials() {
-                        return token;
-                    }
-
-                    @Override
-                    public Object getPrincipal() {
-                        return accountUid;
-                    }
-                };
-                authentication.setAuthenticated(true);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } catch (Exception ignored) {
-            }
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        filterChain.doFilter(request, response);
+        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (header == null || !header.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String token = header.substring(7);
+
+        try {
+            Jws<Claims> jws = jwtProvider.parse(token);
+
+            jwtProvider.assertType(jws, "access");
+
+            String jti = jws.getBody().getId();
+            if (jti != null && Boolean.TRUE.equals(redisTemplate.hasKey("blacklist:access:" + jti))) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "이미 로그아웃된 토큰입니다.");
+                return;
+            }
+
+            String accountUid = jws.getBody().getSubject();
+            if (accountUid == null || accountUid.isBlank()) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰입니다.");
+                return;
+            }
+
+            AbstractAuthenticationToken authentication = new AbstractAuthenticationToken(
+                    List.of(new SimpleGrantedAuthority("ROLE_USER"))) {
+
+                @Override
+                public Object getCredentials() {
+                    return token;
+                }
+
+                @Override
+                public Object getPrincipal() {
+                    return accountUid;
+                }
+            };
+
+            authentication.setAuthenticated(true);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            filterChain.doFilter(request, response);
+
+        } catch (ExpiredJwtException e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "토큰이 만료되었습니다.");
+        } catch (JwtException e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰입니다.");
+        } catch (ApiException e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증 처리 중 오류가 발생했습니다.");
+        } finally {
+
+        }
     }
 }
