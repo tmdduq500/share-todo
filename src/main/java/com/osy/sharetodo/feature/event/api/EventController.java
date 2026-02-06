@@ -1,5 +1,6 @@
 package com.osy.sharetodo.feature.event.api;
 
+import com.osy.sharetodo.feature.event.dto.EventCalendarRes;
 import com.osy.sharetodo.feature.event.dto.EventDto;
 import com.osy.sharetodo.feature.event.dto.EventListCondition;
 import com.osy.sharetodo.feature.event.dto.EventListRes;
@@ -11,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/events")
@@ -44,5 +45,12 @@ public class EventController {
         String accountUid = (String) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
         return ApiResponse.ok(eventService.invitedList(accountUid, eventListCondition));
+    }
+
+    @GetMapping("/calendar")
+    public ApiResponse<List<EventCalendarRes>> calendar(@Valid EventListCondition eventListCondition) {
+        String accountUid = (String) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        return ApiResponse.ok(eventService.calendarList(accountUid, eventListCondition));
     }
 }

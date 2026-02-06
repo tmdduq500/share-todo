@@ -81,6 +81,28 @@ public class EventQueryRepositoryImpl implements EventQueryRepository {
         return new PageImpl<>(content, pageable, totalElements);
     }
 
+    @Override
+    public List<Event> searchCalendarEvents(Long personId, LocalDateTime fromUtc, LocalDateTime toUtc, String keyword) {
+        OrderSpecifier<?> order = new OrderSpecifier<>(Order.ASC, event.startsAtUtc);
+
+        return queryFactory
+                .select(event)
+                .from(event)
+                .leftJoin(participant).on(
+                        participant.event.eq(event),
+                        participant.person.id.eq(personId),
+                        participant.status.eq(ParticipantStatus.ACCEPTED)
+                )
+                .where(
+                        event.owner.id.eq(personId).or(participant.id.isNotNull()),
+                        eventFilters(fromUtc, toUtc, keyword)
+                )
+                .distinct()
+                .orderBy(order)
+                .fetch();
+    }
+
+
     private BooleanBuilder whereBuild(Long ownerPersonId, LocalDateTime fromUtc, LocalDateTime toUtc, String keyword) {
         BooleanBuilder where = new BooleanBuilder();
 

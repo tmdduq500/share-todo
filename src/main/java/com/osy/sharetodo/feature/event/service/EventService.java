@@ -3,6 +3,7 @@ package com.osy.sharetodo.feature.event.service;
 import com.osy.sharetodo.feature.account.domain.Account;
 import com.osy.sharetodo.feature.account.repository.AccountRepository;
 import com.osy.sharetodo.feature.event.domain.Event;
+import com.osy.sharetodo.feature.event.dto.EventCalendarRes;
 import com.osy.sharetodo.feature.event.dto.EventDto;
 import com.osy.sharetodo.feature.event.dto.EventListCondition;
 import com.osy.sharetodo.feature.event.dto.EventListRes;
@@ -14,6 +15,7 @@ import com.osy.sharetodo.global.exception.ErrorCode;
 import com.osy.sharetodo.global.response.PageResponse;
 import com.osy.sharetodo.global.util.TimeUtils;
 import com.osy.sharetodo.global.util.Ulids;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -191,4 +195,49 @@ public class EventService {
     }
 
 
+    public List<EventCalendarRes> calendarList(String accountUid, EventListCondition condition) {
+        Account acc = accountRepository.findByUid(accountUid)
+                .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED, "계정을 찾을 수 없습니다."));
+
+        Person me = personRepository.findByAccount_Id(acc.getId())
+                .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, "사용자 정보를 찾을 수 없습니다."));
+
+        if (condition.getTimezone() == null || condition.getTimezone().isBlank()) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "timezone은 필수입니다.");
+        }
+        if (condition.getFromLocal() == null && condition.getToLocal() == null) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "fromLocal 또는 toLocal 중 하나는 필요합니다.");
+        }
+
+        LocalDateTime fromUtc = null, toUtc = null;
+        if (condition.getFromLocal() != null) {
+            fromUtc = TimeUtils.toUtc(condition.getFromLocal(), condition.getTimezone());
+        }
+        if (condition.getToLocal() != null) {
+            toUtc = TimeUtils.toUtc(condition.getToLocal(), condition.getTimezone());
+        }
+
+        List<Event> events = eventRepository.searchCalendarEvents(
+                me.getId(),
+                fromUtc, toUtc,
+                condition.getQ()
+        );
+
+        return events.stream().map(e -> {
+            EventCalendarRes r = new EventCalendarRes();
+            r.setUid(e.getUid());
+            r.setTitle(e.getTitle());
+            r.setDescription(e.getDescription());
+            r.setStartsAtUtc(e.getStartsAtUtc().atOffset(java.time.ZoneOffset.UTC).toString());
+            r.setEndsAtUtc(e.getEndsAtUtc().atOffset(java.time.ZoneOffset.UTC).toString());
+            r.setLocation(e.getLocation());
+            r.setVisibility(e.getVisibility());
+
+            r.setSource(e.getOwner() != null && e.getOwner().getId().equals(me.getId())
+                    ? EventCalendarRes.Source.OWN
+                    : EventCalendarRes.Source.INVITED);
+
+            return r;
+        }).collect(Collectors.toList());
+    }
 }
