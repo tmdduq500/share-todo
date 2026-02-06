@@ -33,6 +33,7 @@ public class AccountService {
     private final Ulids ulids;
 
     private final PasswordResetTokenService resetTokenService;
+    private final EmailVerificationCodeService emailVerificationCodeService;
     private final MailPort mailPort;
     private final AppProps appProps;
     private final PasswordResetEmailTemplate resetTemplate;
@@ -44,6 +45,11 @@ public class AccountService {
     @Transactional
     public AccountDto.SignupRes signup(AccountDto.SignupReq req) {
         String emailNorm = normEmail(req.getEmail());
+
+        if (!emailVerificationCodeService.isVerified(emailNorm)) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "이메일 인증을 완료해주세요.");
+        }
+
         if (accountRepository.findByEmailNorm(emailNorm).isPresent()) {
             throw new ApiException(ErrorCode.CONFLICT, "이미 가입된 이메일입니다.");
         }
@@ -109,4 +115,39 @@ public class AccountService {
         String newHash = passwordEncoder.encode(req.getNewPassword());
         acc.changePassword(newHash.getBytes(StandardCharsets.UTF_8));
     }
+
+    @Transactional(readOnly = true)
+    public boolean emailExists(String email) {
+        String emailNorm = normEmail(email);
+        return accountRepository.findByEmailNorm(emailNorm).isPresent();
+    }
+
+    @Transactional
+    public void sendVerifyCode(String email) {
+        String emailNorm = normEmail(email);
+
+        // 이미 가입된 이메일이면 인증 발송 막기
+        if (accountRepository.findByEmailNorm(emailNorm).isPresent()) {
+            throw new ApiException(ErrorCode.CONFLICT, "이미 가입된 이메일입니다.");
+        }
+
+        String code = emailVerificationCodeService.issueCode(emailNorm);
+        if (code == null) {
+            throw new ApiException(ErrorCode.TOO_MANY_REQUESTS, "인증번호는 1분마다 발송 가능합니다.");
+        }
+
+        // 메일 발송
+        String subject = "[ShareTodo] 이메일 인증번호";
+        String body = "인증번호는 " + code + " 입니다.\n(5분 이내 입력)";
+        mailPort.send(emailNorm, subject, body);
+    }
+
+    @Transactional
+    public void confirmVerifyCode(String email, String code) {
+        boolean ok = emailVerificationCodeService.confirm(email, code);
+        if (!ok) {
+            throw new ApiException(ErrorCode.UNAUTHORIZED, "인증번호가 올바르지 않거나 만료되었습니다.");
+        }
+    }
+
 }

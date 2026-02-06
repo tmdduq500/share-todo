@@ -70,4 +70,42 @@ public final class AccountDto {
         @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[\\p{Punct}]).{8,100}$")
         private String newPassword;
     }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class EmailExistsRes {
+        private boolean exists;
+
+        public static EmailExistsRes of(boolean exists) {
+            EmailExistsRes r = new EmailExistsRes();
+            r.setExists(exists);
+            return r;
+        }
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class EmailVerifyRequestReq {
+        @NotBlank
+        @Email
+        @Size(max = 255)
+        private String email;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class EmailVerifyConfirmReq {
+        @NotBlank
+        @Email
+        @Size(max = 255)
+        private String email;
+
+        @NotBlank
+        @Pattern(regexp = "^\\d{6}$", message = "인증번호는 6자리 숫자입니다.")
+        private String code;
+    }
+
 }

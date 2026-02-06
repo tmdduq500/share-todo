@@ -26,7 +26,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health", "/v3/api-docs/**", "/swagger-ui/**",
                                 "/api/auth/**", "/api/ics/**",
-                                "/api/accounts/signup", "/api/accounts/password/reset/**").permitAll()
+                                "/api/accounts/signup", "/api/accounts/password/reset/**",
+                                "/api/accounts/exists","/api/accounts/verify/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(e -> e

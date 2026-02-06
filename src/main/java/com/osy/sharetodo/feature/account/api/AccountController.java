@@ -6,10 +6,7 @@ import com.osy.sharetodo.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/accounts")
@@ -39,6 +36,24 @@ public class AccountController {
     @PostMapping("/password/reset/confirm")
     public ApiResponse<Void> resetConfirm(@Valid @RequestBody AccountDto.ResetConfirmReq req) {
         accountService.resetConfirm(req);
+        return ApiResponse.ok(null);
+    }
+
+    @GetMapping("/exists")
+    public ApiResponse<AccountDto.EmailExistsRes> emailExists(@RequestParam String email) {
+        boolean exists = accountService.emailExists(email);
+        return ApiResponse.ok(AccountDto.EmailExistsRes.of(exists));
+    }
+
+    @PostMapping("/verify/request")
+    public ApiResponse<Void> requestEmailVerify(@Valid @RequestBody AccountDto.EmailVerifyRequestReq req) {
+        accountService.sendVerifyCode(req.getEmail());
+        return ApiResponse.ok(null);
+    }
+
+    @PostMapping("/verify/confirm")
+    public ApiResponse<Void> confirmEmailVerify(@Valid @RequestBody AccountDto.EmailVerifyConfirmReq req) {
+        accountService.confirmVerifyCode(req.getEmail(), req.getCode());
         return ApiResponse.ok(null);
     }
 }
