@@ -54,6 +54,6 @@ application-*.properties
 .env.*
 /secrets/
 
-# DB
-db/migration/
-*.sql
+## DB
+#db/migration/
+#*.sql
