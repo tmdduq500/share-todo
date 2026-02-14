@@ -1,7 +1,6 @@
 -- 1. 일정 수정 추적
 ALTER TABLE event
-    ADD COLUMN sequence INT NOT NULL DEFAULT 0,
-    ADD COLUMN last_modified_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+    ADD COLUMN sequence INT NOT NULL DEFAULT 0;
 
 -- 2. 리마인드
 ALTER TABLE event
