@@ -10,6 +10,7 @@ import com.osy.sharetodo.feature.invitation.dto.InvitationDto;
 import com.osy.sharetodo.feature.invitation.repository.InvitationRepository;
 import com.osy.sharetodo.feature.invitation.template.InvitationEmailTemplate;
 import com.osy.sharetodo.feature.notification.mail.MailPort;
+import com.osy.sharetodo.feature.notification.push.service.PushNotificationService;
 import com.osy.sharetodo.feature.participant.domain.Participant;
 import com.osy.sharetodo.feature.participant.repository.ParticipantRepository;
 import com.osy.sharetodo.feature.person.domain.Person;
@@ -37,6 +38,7 @@ public class InvitationService {
     private final ParticipantRepository participantRepository;
     private final InviteTokenService inviteTokenService;
     private final Ulids ulids;
+    private final PushNotificationService pushNotificationService;
 
     private final MailPort mailPort;
     private final AppProps appProps;
@@ -87,9 +89,28 @@ public class InvitationService {
 
         if (req.getChannel() == InvitationChannel.EMAIL) {
             String to = normalizeEmail(req.getTarget());
+
             String subject = emailTemplate.subject(event.getTitle());
-            String body = emailTemplate.body(appProps.getFrontBaseUrl(), appProps.getBackBaseUrl(), rawToken, event.getTitle(), event.getDescription());
+            String body = emailTemplate.body(
+                    appProps.getFrontBaseUrl(),
+                    appProps.getBackBaseUrl(),
+                    rawToken,
+                    event.getTitle(),
+                    event.getDescription()
+            );
             mailPort.send(to, subject, body);
+
+            accountRepository.findByEmailNorm(to).flatMap(account -> personRepository.findByAccount_Id(account.getId())).ifPresent(recipientPerson -> {
+                String inviterName = inviter.getDisplayName() != null
+                        ? inviter.getDisplayName()
+                        : "누군가";
+
+                pushNotificationService.sendInvitationCreated(
+                        recipientPerson,
+                        event,
+                        inviterName
+                );
+            });
         }
 
         return res;
