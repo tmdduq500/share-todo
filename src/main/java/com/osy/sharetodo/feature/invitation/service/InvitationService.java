@@ -66,9 +66,20 @@ public class InvitationService {
 
         // 참가자 생성
         byte[] cHash = contactHash(req.getChannel(), req.getTarget());
-        Participant participant = participantRepository
-                .findByEvent_IdAndContactHash(event.getId(), cHash)
-                .orElseGet(() -> participantRepository.save(Participant.invite(event, cHash)));
+
+        participantRepository.findByEvent_IdAndContactHash(event.getId(), cHash).orElseGet(() -> {
+            if (req.getChannel() == InvitationChannel.EMAIL) {
+                String emailNorm = normalizeEmail(req.getTarget());
+                return participantRepository.save(
+                        Participant.inviteEmail(event, cHash, emailNorm)
+                );
+            } else {
+                String phoneNorm = normalizePhone(req.getTarget());
+                return participantRepository.save(
+                        Participant.invitePhone(event, cHash, phoneNorm)
+                );
+            }
+        });
 
         // 초대 토큰 생성
         String rawToken = inviteTokenService.newToken();

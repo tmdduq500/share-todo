@@ -102,6 +102,52 @@ public class EventQueryRepositoryImpl implements EventQueryRepository {
                 .fetch();
     }
 
+    @Override
+    public Page<Event> searchByInviteTargetAndFilters(Long personId, String emailNorm, String phoneNorm, LocalDateTime fromUtc, LocalDateTime toUtc, String keyword, Pageable pageable) {
+        OrderSpecifier<?> order = new OrderSpecifier<>(Order.DESC, event.startsAtUtc);
+
+        BooleanBuilder targetCondition = new BooleanBuilder();
+
+        if (personId != null) {
+            targetCondition.or(participant.person.id.eq(personId));
+        }
+        if (emailNorm != null && !emailNorm.isBlank()) {
+            targetCondition.or(participant.emailNorm.eq(emailNorm));
+        }
+        if (phoneNorm != null && !phoneNorm.isBlank()) {
+            targetCondition.or(participant.phoneNorm.eq(phoneNorm));
+        }
+
+        List<Event> content = queryFactory
+                .select(event)
+                .from(participant)
+                .join(participant.event, event)
+                .where(
+                        targetCondition,
+                        participant.status.eq(ParticipantStatus.INVITED),
+                        eventFilters(fromUtc, toUtc, keyword)
+                )
+                .distinct()
+                .orderBy(order)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = queryFactory
+                .select(event.id.countDistinct())
+                .from(participant)
+                .join(participant.event, event)
+                .where(
+                        targetCondition,
+                        participant.status.eq(ParticipantStatus.INVITED),
+                        eventFilters(fromUtc, toUtc, keyword)
+                )
+                .fetchOne();
+
+        long totalElements = total == null ? 0L : total;
+        return new PageImpl<>(content, pageable, totalElements);
+    }
+
 
     private BooleanBuilder whereBuild(Long ownerPersonId, LocalDateTime fromUtc, LocalDateTime toUtc, String keyword) {
         BooleanBuilder where = new BooleanBuilder();

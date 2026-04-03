@@ -172,9 +172,15 @@ public class EventService {
         Sort sort = Sort.by(Sort.Direction.ASC, "startsAtUtc");
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        var pageEvents = eventRepository.searchByParticipantAndFilters(
+        String emailNorm = acc.getEmailNorm();
+        String phoneNorm = acc.getPhoneNorm(); // 있으면
+
+        var pageEvents = eventRepository.searchByInviteTargetAndFilters(
                 me.getId(),
-                fromUtc, toUtc,
+                emailNorm,
+                phoneNorm,
+                fromUtc,
+                toUtc,
                 eventListCondition.getQ(),
                 pageable
         );
@@ -193,7 +199,6 @@ public class EventService {
 
         return PageResponse.of(mapped);
     }
-
 
     public List<EventCalendarRes> calendarList(String accountUid, EventListCondition condition) {
         Account acc = accountRepository.findByUid(accountUid)

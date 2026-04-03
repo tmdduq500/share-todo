@@ -22,6 +22,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Participant extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,10 +33,16 @@ public class Participant extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "person_id")
-    private Person person; // 비회원이면 null
+    private Person person;
 
     @Column(name = "contact_hash", columnDefinition = "binary(32)")
     private byte[] contactHash;
+
+    @Column(name = "email_norm", length = 320)
+    private String emailNorm;
+
+    @Column(name = "phone_norm", length = 30)
+    private String phoneNorm;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -45,17 +52,26 @@ public class Participant extends BaseEntity {
     @Column(nullable = false)
     private ParticipantStatus status;
 
-    /** 정적 생성자 (비회원 초대용) */
-    public static Participant invite(Event event, byte[] contactHash) {
+    public static Participant inviteEmail(Event event, byte[] contactHash, String emailNorm) {
         Participant p = new Participant();
         p.event = event;
         p.contactHash = contactHash;
+        p.emailNorm = emailNorm;
         p.role = ParticipantRole.ATTENDEE;
         p.status = ParticipantStatus.INVITED;
         return p;
     }
 
-    /** 회원 기반 참가자 */
+    public static Participant invitePhone(Event event, byte[] contactHash, String phoneNorm) {
+        Participant p = new Participant();
+        p.event = event;
+        p.contactHash = contactHash;
+        p.phoneNorm = phoneNorm;
+        p.role = ParticipantRole.ATTENDEE;
+        p.status = ParticipantStatus.INVITED;
+        return p;
+    }
+
     public static Participant of(Event event, Person person, ParticipantRole role) {
         Participant p = new Participant();
         p.event = event;
@@ -66,12 +82,10 @@ public class Participant extends BaseEntity {
         return p;
     }
 
-    /** 초대 수락 처리 */
     public void accept() {
         this.status = ParticipantStatus.ACCEPTED;
     }
 
-    /** 참가자(person) 연결 */
     public void updatePerson(Person person) {
         this.person = person;
     }

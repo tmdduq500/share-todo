@@ -14,4 +14,5 @@ public interface EventQueryRepository {
 
     List<Event> searchCalendarEvents(Long personId, LocalDateTime fromUtc, LocalDateTime toUtc, String keyword);
 
+    Page<Event> searchByInviteTargetAndFilters(Long personId, String emailNorm, String phoneNorm, LocalDateTime fromUtc, LocalDateTime toUtc, String keyword, Pageable pageable);
 }
