@@ -203,4 +203,43 @@ public class InvitationService {
 
         return event;
     }
+
+    @Transactional
+    public InvitationDto.AcceptRes acceptByInvitationUid(String invitationUid, String accountUid) {
+        Invitation inv = invitationRepository.findByUid(invitationUid)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "초대를 찾을 수 없습니다."));
+
+        if (inv.isExpired(LocalDateTime.now(ZoneOffset.UTC))) {
+            throw new ApiException(ErrorCode.UNAUTHORIZED, "초대가 만료되었습니다.");
+        }
+
+        Account acc = accountRepository.findByUid(accountUid)
+                .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED, "계정을 찾을 수 없습니다."));
+
+        Person person = personRepository.findByAccount_Id(acc.getId())
+                .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, "사용자 정보를 찾을 수 없습니다."));
+
+        Participant participant = participantRepository
+                .findByEvent_IdAndContactHash(inv.getEvent().getId(), inv.getContactHash())
+                .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, "참가자를 찾을 수 없습니다."));
+
+        boolean matched =
+                (acc.getEmailNorm() != null && acc.getEmailNorm().equals(participant.getEmailNorm())) ||
+                        (acc.getPhoneNorm() != null && acc.getPhoneNorm().equals(participant.getPhoneNorm())) ||
+                        (participant.getPerson() != null && participant.getPerson().getId().equals(person.getId()));
+
+        if (!matched) {
+            throw new ApiException(ErrorCode.FORBIDDEN, "본인의 초대만 수락할 수 있습니다.");
+        }
+
+        if (inv.getAcceptedAt() != null) {
+            return makeAcceptedRes(inv.getEvent().getUid());
+        }
+
+        participant.updatePerson(person);
+        participant.accept();
+        inv.accept();
+
+        return makeAcceptedRes(inv.getEvent().getUid());
+    }
 }

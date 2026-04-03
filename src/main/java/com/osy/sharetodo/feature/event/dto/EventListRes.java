@@ -16,4 +16,6 @@ public class EventListRes {
     private String endsAtUtc;
     private String location;
     private Visibility visibility;
+
+    private String invitationUid;
 }
