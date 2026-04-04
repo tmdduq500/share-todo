@@ -12,6 +12,7 @@ import com.osy.sharetodo.feature.invitation.template.InvitationEmailTemplate;
 import com.osy.sharetodo.feature.notification.mail.MailPort;
 import com.osy.sharetodo.feature.notification.push.service.PushNotificationService;
 import com.osy.sharetodo.feature.participant.domain.Participant;
+import com.osy.sharetodo.feature.participant.domain.ParticipantStatus;
 import com.osy.sharetodo.feature.participant.repository.ParticipantRepository;
 import com.osy.sharetodo.feature.person.domain.Person;
 import com.osy.sharetodo.feature.person.repository.PersonRepository;
@@ -241,5 +242,56 @@ public class InvitationService {
         inv.accept();
 
         return makeAcceptedRes(inv.getEvent().getUid());
+    }
+
+    @Transactional
+    public InvitationDto.RejectRes rejectByInvitationUid(String invitationUid, String accountUid) {
+        Invitation inv = invitationRepository.findByUid(invitationUid)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "초대를 찾을 수 없습니다."));
+
+        if (inv.isExpired(LocalDateTime.now(ZoneOffset.UTC))) {
+            throw new ApiException(ErrorCode.UNAUTHORIZED, "초대가 만료되었습니다.");
+        }
+
+        Account acc = accountRepository.findByUid(accountUid)
+                .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED, "계정을 찾을 수 없습니다."));
+
+        Person person = personRepository.findByAccount_Id(acc.getId())
+                .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, "사용자 정보를 찾을 수 없습니다."));
+
+        Participant participant = participantRepository
+                .findByEvent_IdAndContactHash(inv.getEvent().getId(), inv.getContactHash())
+                .orElseThrow(() -> new ApiException(ErrorCode.INTERNAL_ERROR, "참가자를 찾을 수 없습니다."));
+
+        boolean matched =
+                (acc.getEmailNorm() != null && acc.getEmailNorm().equals(participant.getEmailNorm())) ||
+                        (acc.getPhoneNorm() != null && acc.getPhoneNorm().equals(participant.getPhoneNorm())) ||
+                        (participant.getPerson() != null && participant.getPerson().getId().equals(person.getId()));
+
+        if (!matched) {
+            throw new ApiException(ErrorCode.FORBIDDEN, "본인의 초대만 거절할 수 있습니다.");
+        }
+
+        if (inv.getAcceptedAt() != null || participant.getStatus() == ParticipantStatus.ACCEPTED) {
+            throw new ApiException(ErrorCode.VALIDATION_ERROR, "이미 수락된 초대는 거절할 수 없습니다.");
+        }
+
+        if (participant.getStatus() == ParticipantStatus.DECLINED) {
+            return makeRejectedRes(inv.getEvent().getUid());
+        }
+
+        if (participant.getPerson() == null) {
+            participant.updatePerson(person);
+        }
+        participant.decline();
+
+        return makeRejectedRes(inv.getEvent().getUid());
+    }
+
+    private InvitationDto.RejectRes makeRejectedRes(String eventUid) {
+        InvitationDto.RejectRes res = new InvitationDto.RejectRes();
+        res.setEventUid(eventUid);
+        res.setStatus("DECLINED");
+        return res;
     }
 }

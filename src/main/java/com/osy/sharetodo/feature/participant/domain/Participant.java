@@ -89,5 +89,9 @@ public class Participant extends BaseEntity {
     public void updatePerson(Person person) {
         this.person = person;
     }
+
+    public void decline() {
+        this.status = ParticipantStatus.DECLINED;
+    }
 }
 

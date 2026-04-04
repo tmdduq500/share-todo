@@ -45,4 +45,12 @@ public final class InvitationDto {
         private String eventUid;
         private String status;
     }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class RejectRes {
+        private String eventUid;
+        private String status;
+    }
 }

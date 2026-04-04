@@ -32,4 +32,10 @@ public class InvitationController {
         String accountUid = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ApiResponse.ok(invitationService.acceptByInvitationUid(invitationUid, accountUid));
     }
+
+    @PostMapping("/{invitationUid}/reject")
+    public ApiResponse<InvitationDto.RejectRes> rejectByInvitationUid(@PathVariable String invitationUid) {
+        String accountUid = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ApiResponse.ok(invitationService.rejectByInvitationUid(invitationUid, accountUid));
+    }
 }
