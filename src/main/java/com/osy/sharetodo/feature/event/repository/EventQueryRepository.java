@@ -1,6 +1,7 @@
 package com.osy.sharetodo.feature.event.repository;
 
 import com.osy.sharetodo.feature.event.domain.Event;
+import com.osy.sharetodo.feature.event.dto.InvitedEventRow;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -14,5 +15,5 @@ public interface EventQueryRepository {
 
     List<Event> searchCalendarEvents(Long personId, LocalDateTime fromUtc, LocalDateTime toUtc, String keyword);
 
-    Page<Event> searchByInviteTargetAndFilters(Long personId, String emailNorm, String phoneNorm, LocalDateTime fromUtc, LocalDateTime toUtc, String keyword, Pageable pageable);
+    Page<InvitedEventRow> searchByInviteTargetAndFilters(Long personId, String emailNorm, String phoneNorm, LocalDateTime fromUtc, LocalDateTime toUtc, String keyword, Pageable pageable);
 }

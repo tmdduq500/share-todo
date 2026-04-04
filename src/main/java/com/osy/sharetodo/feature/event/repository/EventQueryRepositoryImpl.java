@@ -2,10 +2,13 @@ package com.osy.sharetodo.feature.event.repository;
 
 import com.osy.sharetodo.feature.event.domain.Event;
 import com.osy.sharetodo.feature.event.domain.QEvent;
+import com.osy.sharetodo.feature.event.dto.InvitedEventRow;
+import com.osy.sharetodo.feature.event.dto.QInvitedEventRow;
 import com.osy.sharetodo.feature.participant.domain.ParticipantStatus;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.osy.sharetodo.feature.event.domain.QEvent.event;
+import static com.osy.sharetodo.feature.invitation.domain.QInvitation.invitation;
 import static com.osy.sharetodo.feature.participant.domain.QParticipant.participant;
 
 @Repository
@@ -103,7 +107,7 @@ public class EventQueryRepositoryImpl implements EventQueryRepository {
     }
 
     @Override
-    public Page<Event> searchByInviteTargetAndFilters(Long personId, String emailNorm, String phoneNorm, LocalDateTime fromUtc, LocalDateTime toUtc, String keyword, Pageable pageable) {
+    public Page<InvitedEventRow> searchByInviteTargetAndFilters(Long personId, String emailNorm, String phoneNorm, LocalDateTime fromUtc, LocalDateTime toUtc, String keyword, Pageable pageable) {
         OrderSpecifier<?> order = new OrderSpecifier<>(Order.DESC, event.startsAtUtc);
 
         BooleanBuilder targetCondition = new BooleanBuilder();
@@ -118,10 +122,17 @@ public class EventQueryRepositoryImpl implements EventQueryRepository {
             targetCondition.or(participant.phoneNorm.eq(phoneNorm));
         }
 
-        List<Event> content = queryFactory
-                .select(event)
+        List<InvitedEventRow> content = queryFactory
+                .select(new QInvitedEventRow(
+                        event,
+                        invitation.uid
+                ))
                 .from(participant)
                 .join(participant.event, event)
+                .leftJoin(invitation).on(
+                        invitation.event.eq(event),
+                        invitation.contactHash.eq(participant.contactHash)
+                )
                 .where(
                         targetCondition,
                         participant.status.eq(ParticipantStatus.INVITED),
@@ -147,7 +158,6 @@ public class EventQueryRepositoryImpl implements EventQueryRepository {
         long totalElements = total == null ? 0L : total;
         return new PageImpl<>(content, pageable, totalElements);
     }
-
 
     private BooleanBuilder whereBuild(Long ownerPersonId, LocalDateTime fromUtc, LocalDateTime toUtc, String keyword) {
         BooleanBuilder where = new BooleanBuilder();

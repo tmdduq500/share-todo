@@ -173,7 +173,7 @@ public class EventService {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         String emailNorm = acc.getEmailNorm();
-        String phoneNorm = acc.getPhoneNorm(); // 있으면
+        String phoneNorm = acc.getPhoneNorm();
 
         var pageEvents = eventRepository.searchByInviteTargetAndFilters(
                 me.getId(),
@@ -185,7 +185,9 @@ public class EventService {
                 pageable
         );
 
-        var mapped = pageEvents.map(e -> {
+        var mapped = pageEvents.map(row -> {
+            Event e = row.getEvent();
+
             EventListRes r = new EventListRes();
             r.setUid(e.getUid());
             r.setTitle(e.getTitle());
@@ -194,6 +196,7 @@ public class EventService {
             r.setEndsAtUtc(e.getEndsAtUtc().atOffset(java.time.ZoneOffset.UTC).toString());
             r.setLocation(e.getLocation());
             r.setVisibility(e.getVisibility());
+            r.setInvitationUid(row.getInvitationUid());
             return r;
         });
 
