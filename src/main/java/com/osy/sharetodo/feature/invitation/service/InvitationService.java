@@ -88,7 +88,11 @@ public class InvitationService {
         LocalDateTime expiresAt = LocalDateTime.now(ZoneOffset.UTC)
                 .plusHours(Optional.ofNullable(req.getTtlHours()).orElse(168));
 
-        Person inviter = event.getOwner();
+        Account inviterAccount = accountRepository.findByUid(inviterAccountUid)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "계정을 찾을 수 없습니다."));
+
+        Person inviter = personRepository.findByAccount_Id(inviterAccount.getId())
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "초대 생성자 정보를 찾을 수 없습니다."));
 
         Invitation inv = Invitation.create(
                 event, inviter, req.getChannel(), cHash, tokenHash, expiresAt, ulids.newUlid()
@@ -120,6 +124,7 @@ public class InvitationService {
                 pushNotificationService.sendInvitationCreated(
                         recipientPerson,
                         event,
+                        inv,
                         inviterName
                 );
             });

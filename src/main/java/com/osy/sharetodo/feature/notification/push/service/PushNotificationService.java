@@ -3,9 +3,13 @@ package com.osy.sharetodo.feature.notification.push.service;
 import com.osy.sharetodo.feature.device.domain.DeviceToken;
 import com.osy.sharetodo.feature.device.repository.DeviceTokenRepository;
 import com.osy.sharetodo.feature.event.domain.Event;
+import com.osy.sharetodo.feature.invitation.domain.Invitation;
+import com.osy.sharetodo.feature.invitation.repository.InvitationRepository;
 import com.osy.sharetodo.feature.notification.push.client.ExpoPushClient;
 import com.osy.sharetodo.feature.notification.push.dto.ExpoPushMessage;
 import com.osy.sharetodo.feature.person.domain.Person;
+import com.osy.sharetodo.global.exception.ApiException;
+import com.osy.sharetodo.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,14 +22,14 @@ public class PushNotificationService {
 
     private final DeviceTokenRepository deviceTokenRepository;
     private final ExpoPushClient expoPushClient;
+    private final InvitationRepository invitationRepository;
 
-    public void sendInvitationCreated(Person recipient, Event event, String inviterName) {
+    public void sendInvitationCreated(Person recipient, Event event, Invitation invitation, String inviterName) {
         if (recipient == null || recipient.getAccount() == null) {
             return;
         }
 
-        List<DeviceToken> tokens = deviceTokenRepository
-                .findAllByAccount_uidAndActiveTrue(recipient.getAccount().getUid());
+        List<DeviceToken> tokens = deviceTokenRepository.findAllByAccount_uidAndActiveTrue(recipient.getAccount().getUid());
 
         if (tokens.isEmpty()) {
             return;
@@ -39,7 +43,8 @@ public class PushNotificationService {
                     .sound("default")
                     .data(Map.of(
                             "type", "INVITATION_CREATED",
-                            "eventUid", event.getUid()
+                            "eventUid", event.getUid(),
+                            "invitationUid", invitation.getUid()
                     ))
                     .build();
 
