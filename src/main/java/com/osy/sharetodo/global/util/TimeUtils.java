@@ -26,4 +26,23 @@ public class TimeUtils {
         return LocalDateTime.ofInstant(instant, zid).atZone(zid).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
     }
 
+    public static LocalDateTime toUtcFlexible(String input, String zoneId) {
+        ZoneId zid = ZoneId.of(zoneId);
+
+        if (input == null || input.isBlank()) {
+            throw new IllegalArgumentException("time input is blank");
+        }
+
+        // Z 또는 +09:00 같은 offset 포함
+        if (input.endsWith("Z") || input.matches(".*[+-]\\d{2}:\\d{2}$")) {
+            Instant instant = Instant.parse(input);
+            return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+        }
+
+        // offset 없는 local datetime
+        LocalDateTime ldt = LocalDateTime.parse(input);
+        Instant instant = ldt.atZone(zid).toInstant();
+        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+    }
+
 }
